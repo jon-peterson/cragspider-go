@@ -20,6 +20,11 @@ type SpriteSheet struct {
 	origin      rl.Vector2   // The middle of the sprite (for rotation)
 }
 
+// FrameLoc represents a location in the spritesheet by row and column.
+type FrameLoc struct {
+	Row, Col int
+}
+
 // spriteSheetMap manages a named map of SpriteSheets with locking.
 type spriteSheetMap struct {
 	spritesMap map[string]*SpriteSheet
@@ -83,7 +88,12 @@ func (s *SpriteSheet) String() string {
 	return fmt.Sprintf("%s (%dx%d)", s.name, s.frameWidth, s.frameHeight)
 }
 
-// Draw the sprite at the given frame at the given location and rotation.
+// DrawFrame draws the specified frame at the specified location and rotation.
+func (s *SpriteSheet) DrawFrame(frame FrameLoc, loc, rot rl.Vector2) error {
+	return s.Draw(frame.Row, frame.Col, loc, rot)
+}
+
+// Draw draws the sprite at the given frame at the given location and rotation.
 func (s *SpriteSheet) Draw(frameRow, frameCol int, loc, rot rl.Vector2) error {
 	if s.frameWidth == 0 {
 		// Texture hasn't been loaded yet, so load it now
@@ -102,7 +112,7 @@ func (s *SpriteSheet) Draw(frameRow, frameCol int, loc, rot rl.Vector2) error {
 		Height: float32(s.frameHeight),
 	}
 	rotationDegrees := float32(math.Atan2(float64(rot.Y), float64(rot.X)) * 180 / math.Pi)
-	rl.DrawTexturePro(s.texture, frame, destination, s.origin, rotationDegrees, rl.Black)
+	rl.DrawTexturePro(s.texture, frame, destination, s.origin, rotationDegrees, rl.White)
 	return nil
 }
 

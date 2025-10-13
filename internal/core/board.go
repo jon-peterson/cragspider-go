@@ -1,0 +1,54 @@
+// Copyright 2025 Ideograph LLC. All rights reserved.
+
+package core
+
+import (
+	"cragspider-go/internal/animation"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+// Cell is a square on the board.
+type Cell struct {
+	X, Y int
+}
+
+// Board is the game board, which is a grid of cells.
+type Board struct {
+	Rows, Columns     int
+	backgroundSprites *animation.SpriteSheet
+}
+
+const (
+	CellSize = 24
+)
+
+var (
+	BlackSquare = animation.FrameLoc{Row: 1, Col: 2}
+	WhiteSquare = animation.FrameLoc{Row: 1, Col: 8}
+)
+
+// newBoard creates a new, empty board.
+func newBoard() Board {
+	return Board{
+		Rows:              10,
+		Columns:           10,
+		backgroundSprites: animation.LoadSpriteSheet("dungeon_tiles.png", 4, 9),
+	}
+}
+
+// Draw draws the board to the screen at the given location.
+func (b *Board) Draw(loc rl.Vector2) {
+	for i := 0; i < b.Rows; i++ {
+		for j := 0; j < b.Columns; j++ {
+			var frame = WhiteSquare
+			if (i+j)%2 == 0 {
+				frame = BlackSquare
+			}
+			b.backgroundSprites.DrawFrame(
+				frame,
+				rl.Vector2{X: loc.X + float32(j*CellSize), Y: loc.Y + float32(i*CellSize)},
+				rl.Vector2{X: 1, Y: 0})
+		}
+	}
+}
