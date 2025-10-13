@@ -1,3 +1,5 @@
+// Copyright 2025 Ideograph LLC. All rights reserved.
+
 package animation
 
 import (
