@@ -2,7 +2,11 @@
 
 package core
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"fmt"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Game struct {
 	board Board
@@ -21,6 +25,9 @@ func (g *Game) Over() bool {
 }
 
 // Render draws the current game state to the screen.
-func (g *Game) Render() {
-	g.board.Draw(rl.Vector2{X: 24, Y: 24})
+func (g *Game) Render() error {
+	if err := g.board.Render(rl.Vector2{X: 24, Y: 24}); err != nil {
+		return fmt.Errorf("failed to render board: %w", err)
+	}
+	return nil
 }

@@ -4,6 +4,7 @@ package core
 
 import (
 	"cragspider-go/internal/animation"
+	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -37,18 +38,22 @@ func newBoard() Board {
 	}
 }
 
-// Draw draws the board to the screen at the given location.
-func (b *Board) Draw(loc rl.Vector2) {
+// Render draws the board to the screen at the given location.
+func (b *Board) Render(loc rl.Vector2) error {
+	// First draw the board itself
 	for i := 0; i < b.Rows; i++ {
 		for j := 0; j < b.Columns; j++ {
 			var frame = WhiteSquare
 			if (i+j)%2 == 0 {
 				frame = BlackSquare
 			}
-			b.backgroundSprites.DrawFrame(
+			if err := b.backgroundSprites.DrawFrame(
 				frame,
 				rl.Vector2{X: loc.X + float32(j*CellSize), Y: loc.Y + float32(i*CellSize)},
-				rl.Vector2{X: 1, Y: 0})
+				rl.Vector2{X: 1, Y: 0}); err != nil {
+				return fmt.Errorf("failed to draw cell: %w", err)
+			}
 		}
 	}
+	return nil
 }

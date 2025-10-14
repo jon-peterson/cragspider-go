@@ -43,7 +43,9 @@ func (p *Playfield) render() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.RayWhite)
 
-	p.game.Render()
+	if err := p.game.Render(); err != nil {
+		rl.TraceLog(rl.LogError, "error rendering game: %v", err)
+	}
 
 	rl.EndDrawing()
 }
