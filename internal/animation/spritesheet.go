@@ -112,7 +112,7 @@ func (s *SpriteSheet) Draw(frameRow, frameCol int, loc rl.Vector2, scale float32
 		Height: float32(s.frameHeight) * scale,
 	}
 	rotationDegrees := float32(math.Atan2(float64(rot.Y), float64(rot.X)) * 180 / math.Pi)
-	rl.DrawTexturePro(s.texture, frame, destination, s.origin, rotationDegrees, rl.White)
+	rl.DrawTexturePro(s.texture, frame, destination, rl.Vector2Scale(s.origin, scale), rotationDegrees, rl.White)
 	return nil
 }
 
