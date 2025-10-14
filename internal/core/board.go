@@ -27,10 +27,13 @@ const (
 	Scale    = 3.0
 )
 
-var (
-	BlackSquare = animation.FrameLoc{Row: 1, Col: 2}
-	WhiteSquare = animation.FrameLoc{Row: 1, Col: 8}
-)
+// CardinalDirections contains unit vectors for the four cardinal directions: up, right, down, left.
+var CardinalDirections = [4]rl.Vector2{
+	{X: 0, Y: -1}, // up
+	{X: 1, Y: 0},  // right
+	{X: 0, Y: 1},  // down
+	{X: -1, Y: 0}, // left
+}
 
 // newBoard creates a new, empty board.
 func newBoard() Board {
@@ -47,13 +50,21 @@ func newBoard() Board {
 	// Initialize the board's cells with frames
 	for i := range b.Rows {
 		for j := range b.Columns {
-			var f = WhiteSquare
+			var f animation.FrameLoc
 			if (i+j)%2 == 0 {
-				f = BlackSquare
+				f = animation.FrameLoc{
+					Row: IntInRange(0, 1),
+					Col: IntInRange(0, 2),
+				}
+			} else {
+				f = animation.FrameLoc{
+					Row: IntInRange(0, 1),
+					Col: IntInRange(6, 8),
+				}
 			}
 			b.cells[i][j] = Cell{
 				frame:    f,
-				rotation: rl.Vector2{X: 1, Y: 0},
+				rotation: Choice(CardinalDirections[:]),
 			}
 		}
 	}

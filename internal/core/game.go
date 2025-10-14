@@ -26,7 +26,7 @@ func (g *Game) Over() bool {
 
 // Render draws the current game state to the screen.
 func (g *Game) Render() error {
-	if err := g.board.Render(rl.Vector2{X: 24, Y: 24}); err != nil {
+	if err := g.board.Render(rl.Vector2{X: 96, Y: 48}); err != nil {
 		return fmt.Errorf("failed to render board: %w", err)
 	}
 	return nil
