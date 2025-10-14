@@ -22,6 +22,7 @@ type Board struct {
 
 const (
 	CellSize = 24
+	Scale    = 3.0
 )
 
 var (
@@ -49,7 +50,8 @@ func (b *Board) Render(loc rl.Vector2) error {
 			}
 			if err := b.backgroundSprites.DrawFrame(
 				frame,
-				rl.Vector2{X: loc.X + float32(j*CellSize), Y: loc.Y + float32(i*CellSize)},
+				rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
+				Scale,
 				rl.Vector2{X: 1, Y: 0}); err != nil {
 				return fmt.Errorf("failed to draw cell: %w", err)
 			}

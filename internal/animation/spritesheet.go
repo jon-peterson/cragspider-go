@@ -88,13 +88,13 @@ func (s *SpriteSheet) String() string {
 	return fmt.Sprintf("%s (%dx%d)", s.name, s.frameWidth, s.frameHeight)
 }
 
-// DrawFrame draws the specified frame at the specified location and rotation.
-func (s *SpriteSheet) DrawFrame(frame FrameLoc, loc, rot rl.Vector2) error {
-	return s.Draw(frame.Row, frame.Col, loc, rot)
+// DrawFrame draws the specified frame at the specified location, scale, and rotation.
+func (s *SpriteSheet) DrawFrame(frame FrameLoc, loc rl.Vector2, scale float32, rot rl.Vector2) error {
+	return s.Draw(frame.Row, frame.Col, loc, scale, rot)
 }
 
-// Draw draws the sprite at the given frame at the given location and rotation.
-func (s *SpriteSheet) Draw(frameRow, frameCol int, loc, rot rl.Vector2) error {
+// Draw draws the sprite at the given frame at the given location, scale, and rotation.
+func (s *SpriteSheet) Draw(frameRow, frameCol int, loc rl.Vector2, scale float32, rot rl.Vector2) error {
 	if s.frameWidth == 0 {
 		// Texture hasn't been loaded yet, so load it now
 		if err := s.populateTexture(); err != nil {
@@ -108,8 +108,8 @@ func (s *SpriteSheet) Draw(frameRow, frameCol int, loc, rot rl.Vector2) error {
 	destination := rl.Rectangle{
 		X:      loc.X,
 		Y:      loc.Y,
-		Width:  float32(s.frameWidth),
-		Height: float32(s.frameHeight),
+		Width:  float32(s.frameWidth) * scale,
+		Height: float32(s.frameHeight) * scale,
 	}
 	rotationDegrees := float32(math.Atan2(float64(rot.Y), float64(rot.X)) * 180 / math.Pi)
 	rl.DrawTexturePro(s.texture, frame, destination, s.origin, rotationDegrees, rl.White)

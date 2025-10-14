@@ -90,8 +90,8 @@ func TestSpriteSheet_GetSize(t *testing.T) {
 
 func TestLoadSpriteSheet_Cache(t *testing.T) {
 	// Load the sprite sheet for the first time
-	sheet1 := LoadSpriteSheet("alien_big.png", 2, 2)
-	sheet2 := LoadSpriteSheet("alien_big.png", 2, 2)
+	sheet1 := LoadSpriteSheet("test_sheet.png", 2, 2)
+	sheet2 := LoadSpriteSheet("test_sheet.png", 2, 2)
 
 	// Verify that the same pointer is returned
 	if sheet1 != sheet2 {
