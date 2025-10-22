@@ -28,14 +28,20 @@ type PieceConfig struct {
 	Moves   []Move                  `yaml:"moves"`
 }
 
+// BoardPosition represents a piece's position on the board
+type BoardPosition struct {
+	Name     string   `yaml:"name"`
+	Position Position `yaml:"position"`
+}
+
 // BoardConfig is the starting status of the board
 type BoardConfig struct {
-	White [][]interface{} `yaml:"white"`
-	Black [][]interface{} `yaml:"black"`
+	White []BoardPosition `yaml:"white"`
+	Black []BoardPosition `yaml:"black"`
 }
 
 // GetStartingPositions returns the starting positions for the specified color.
-func (b *BoardConfig) GetStartingPositions(color Color) ([][]interface{}, error) {
+func (b *BoardConfig) GetStartingPositions(color Color) ([]BoardPosition, error) {
 	switch color {
 	case White:
 		return b.White, nil

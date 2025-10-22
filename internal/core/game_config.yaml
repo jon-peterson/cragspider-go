@@ -36,14 +36,22 @@ pieces:
       - [ -1, -1 ]
       - [ -2, -2 ]
 board:
-  # Starting board positions: (piece name, row, col)
+  # Starting board positions
   white:
-    - [ "warrior", 0, 0 ]
-    - [ "padwar", 0, 1 ]
-    - [ "padwar", 0, 8]
-    - [ "warrior", 0, 9 ]
+    - name: "warrior"
+      position: [0, 0]
+    - name: "padwar"
+      position: [0, 1]
+    - name: "padwar"
+      position: [0, 8]
+    - name: "warrior"
+      position: [0, 9]
   black:
-    - [ "warrior", 9, 0 ]
-    - [ "padwar", 9, 1 ]
-    - [ "padwar", 9, 8 ]
-    - [ "warrior", 9, 9 ]
+    - name: "warrior"
+      position: [9, 0]
+    - name: "padwar"
+      position: [9, 1]
+    - name: "padwar"
+      position: [9, 8]
+    - name: "warrior"
+      position: [9, 9]
