@@ -1,0 +1,49 @@
+pieces:
+  - name: "warrior"
+    sprites:
+      white:
+        - [ 0, 0 ]
+        - [ 1, 0 ]
+      black:
+        - [ 2, 1 ]
+        - [ 3, 1 ]
+    # Two moves orthogonally
+    moves:
+      - [ 1, 0 ]
+      - [ 2, 0 ]
+      - [ 0, 1 ]
+      - [ 0, 2 ]
+      - [ 0, -1 ]
+      - [ 0, -2 ]
+      - [ -1, 0 ]
+      - [ -2, 0 ]
+  - name: "padwar"
+    sprites:
+      white:
+        - [ 0, 1 ]
+        - [ 1, 1 ]
+      black:
+        - [ 2, 4 ]
+        - [ 3, 4 ]
+    moves:
+      # Two squares diagonally (row, col)
+      - [ 1, 1 ]
+      - [ 2, 2 ]
+      - [ -1, 1 ]
+      - [ -2, 2 ]
+      - [ 1, -1 ]
+      - [ 2, -2 ]
+      - [ -1, -1 ]
+      - [ -2, -2 ]
+board:
+  # Starting board positions: (piece name, row, col)
+  white:
+    - [ "warrior", 0, 0 ]
+    - [ "padwar", 0, 1 ]
+    - [ "padwar", 0, 8]
+    - [ "warrior", 0, 9 ]
+  black:
+    - [ "warrior", 9, 0 ]
+    - [ "padwar", 9, 1 ]
+    - [ "padwar", 9, 8 ]
+    - [ "warrior", 9, 9 ]
