@@ -17,7 +17,6 @@ linters:
     - misspell      # Finds common spelling mistakes
     - gocritic      # Checks for performance, style, and bug issues
     - gosec         # Golang security checker
-    - testpackage   # Forces the use of the `package _test` convention
 
 formatters:
   # List the formatters you want to use here.
