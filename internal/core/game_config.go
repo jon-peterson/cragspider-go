@@ -8,33 +8,39 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Color represents the color of a piece or player
+// Color represents the color of a piece or player.
 type Color string
 
 const (
-	// White represents the white player/pieces
+	// White represents the white player/pieces.
 	White Color = "white"
-	// Black represents the black player/pieces
+	// Black represents the black player/pieces.
 	Black Color = "black"
 )
 
-type Position [2]int // [row, col]
-type Move [2]int     // [deltaRow, deltaCol]
+// Position is a [row,col] on the board.
+type Position [2]int
+
+// Move represents a [deltaRow, deltaCol] move on the boad.
+type Move [2]int
+
+// SpriteCoords is a location [row,col] in a spritesheet.
 type SpriteCoords []Position
 
+// PieceConfig represents a type of piece in the game, like bishop or pawn.
 type PieceConfig struct {
 	Name    string                  `yaml:"name"`
 	Sprites map[string]SpriteCoords `yaml:"sprites"`
 	Moves   []Move                  `yaml:"moves"`
 }
 
-// BoardPosition represents a piece's position on the board
+// BoardPosition represents a starting position on the board: what piece and where.
 type BoardPosition struct {
 	Name     string   `yaml:"name"`
 	Position Position `yaml:"position"`
 }
 
-// BoardConfig is the starting status of the board
+// BoardConfig is how the board looks at the very start of the game.
 type BoardConfig struct {
 	White []BoardPosition `yaml:"white"`
 	Black []BoardPosition `yaml:"black"`
@@ -52,7 +58,7 @@ func (b *BoardConfig) GetStartingPositions(color Color) ([]BoardPosition, error)
 	}
 }
 
-// GameConfig is the full game configuration
+// GameConfig holds all the parameters for how the game is played.
 type GameConfig struct {
 	Pieces []PieceConfig `yaml:"pieces"`
 	Board  BoardConfig   `yaml:"board"`
@@ -63,13 +69,14 @@ var (
 	configOnce sync.Once
 )
 
-//go:embed game_config.yaml
+//go:embed game_config.yml
 var configData []byte
 
-// LoadConfig loads the game configuration from the embedded YAML file.
+// GetConfig loads and returns the game configuration from the embedded YAML file.
 // It uses sync.Once to ensure the configuration is only loaded once.
-func LoadConfig() (*GameConfig, error) {
+func GetConfig() (*GameConfig, error) {
 	var loadErr error
+
 	configOnce.Do(func() {
 		var cfg GameConfig
 		if err := yaml.Unmarshal(configData, &cfg); err != nil {
@@ -84,15 +91,6 @@ func LoadConfig() (*GameConfig, error) {
 		return nil, loadErr
 	}
 
-	return config, nil
-}
-
-// GetConfig returns the loaded configuration.
-// It returns an error if the configuration has not been loaded yet.
-func GetConfig() (*GameConfig, error) {
-	if config == nil {
-		return nil, fmt.Errorf("configuration not loaded, call LoadConfig first")
-	}
 	return config, nil
 }
 

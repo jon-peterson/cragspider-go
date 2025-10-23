@@ -9,9 +9,6 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	t.Run("valid config", func(t *testing.T) {
-		_, err := LoadConfig()
-		require.NoError(t, err)
-
 		// Get the config and run the test function
 		cfg, err := GetConfig()
 		require.NoError(t, err)

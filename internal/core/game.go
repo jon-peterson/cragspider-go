@@ -8,15 +8,22 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+// Game represents a single instance of a game.
 type Game struct {
-	board Board
+	board  Board
+	config *GameConfig
 }
 
 // NewGame returns a new game with a board ready to be played.
-func NewGame() Game {
-	return Game{
-		board: newBoard(),
+func NewGame() (*Game, error) {
+	cfg, err := GetConfig()
+	if err != nil {
+		return nil, err
 	}
+	return &Game{
+		board:  newBoard(),
+		config: cfg,
+	}, nil
 }
 
 // Over returns true if the game is over.

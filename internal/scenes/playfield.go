@@ -9,14 +9,18 @@ import (
 )
 
 type Playfield struct {
-	game core.Game
+	game *core.Game
 }
 
 var _ Scene = (*Playfield)(nil)
 
 // Init initializes the playfield scene with the given width and height.
 func (p *Playfield) Init(width, height int) {
-	p.game = core.NewGame()
+	g, err := core.NewGame()
+	if err != nil {
+		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
+	}
+	p.game = g
 }
 
 // Loop is the basic gameplay loop. Returns a scene code to indicate the next scene.
