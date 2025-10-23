@@ -11,9 +11,15 @@ import (
 
 // Cell is a physical square on the board.
 type Cell struct {
-	frame    animation.FrameLoc
+	frame    animation.FrameCoords
 	rotation rl.Vector2
 }
+
+// Position is a [row,col] on the board.
+type Position [2]int
+
+// Move represents a [deltaRow, deltaCol] move on the board.
+type Move [2]int
 
 // Board is the game board, which is a grid of cells.
 type Board struct {
@@ -28,11 +34,11 @@ const (
 )
 
 // CardinalDirections contains unit vectors for the four cardinal directions: up, right, down, left.
-var CardinalDirections = [4]rl.Vector2{
-	{X: 0, Y: -1}, // up
-	{X: 1, Y: 0},  // right
-	{X: 0, Y: 1},  // down
-	{X: -1, Y: 0}, // left
+var CardinalDirections = [4]Move{
+	{0, -1}, // up
+	{1, 0},  // right
+	{0, 1},  // down
+	{-1, 0}, // left
 }
 
 // newBoard creates a new, empty board.
@@ -47,28 +53,29 @@ func newBoard() Board {
 		b.cells[i] = make([]Cell, 10)
 	}
 
-	// Initialize the board's cells with frames
+	// Initialize the board's cells with surfaces. The surfaces are colored in pairs but are of
+	// random frame and orientation. This gives the board variety over plays.
 	for i := range b.Rows {
 		for j := range b.Columns {
-			var f animation.FrameLoc
+			var f animation.FrameCoords
 			if (i+j)%2 == 0 {
-				f = animation.FrameLoc{
-					Row: IntInRange(0, 1),
-					Col: IntInRange(0, 2),
+				f = animation.FrameCoords{
+					IntInRange(0, 1),
+					IntInRange(0, 2),
 				}
 			} else {
-				f = animation.FrameLoc{
-					Row: IntInRange(0, 1),
-					Col: IntInRange(6, 8),
+				f = animation.FrameCoords{
+					IntInRange(0, 1),
+					IntInRange(6, 8),
 				}
 			}
+			facing := Choice(CardinalDirections[:])
 			b.cells[i][j] = Cell{
 				frame:    f,
-				rotation: Choice(CardinalDirections[:]),
+				rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
 			}
 		}
 	}
-
 	return b
 }
 

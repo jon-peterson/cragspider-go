@@ -20,10 +20,8 @@ type SpriteSheet struct {
 	origin      rl.Vector2   // The middle of the sprite (for rotation)
 }
 
-// FrameLoc represents a location in the spritesheet by row and column.
-type FrameLoc struct {
-	Row, Col int
-}
+// FrameCoords represents a location in the spritesheet by row and column.
+type FrameCoords [2]int
 
 // spriteSheetMap manages a named map of SpriteSheets with locking.
 type spriteSheetMap struct {
@@ -89,19 +87,19 @@ func (s *SpriteSheet) String() string {
 }
 
 // DrawFrame draws the specified frame at the specified location, scale, and rotation.
-func (s *SpriteSheet) DrawFrame(frame FrameLoc, loc rl.Vector2, scale float32, rot rl.Vector2) error {
-	return s.Draw(frame.Row, frame.Col, loc, scale, rot)
+func (s *SpriteSheet) DrawFrame(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
+	return s.Draw(frameCoords, loc, scale, rot)
 }
 
 // Draw draws the sprite at the given frame at the given location, scale, and rotation.
-func (s *SpriteSheet) Draw(frameRow, frameCol int, loc rl.Vector2, scale float32, rot rl.Vector2) error {
+func (s *SpriteSheet) Draw(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
 	if s.frameWidth == 0 {
 		// Texture hasn't been loaded yet, so load it now
 		if err := s.populateTexture(); err != nil {
 			return err
 		}
 	}
-	frame, err := s.frame(frameRow, frameCol)
+	frame, err := s.frame(frameCoords[0], frameCoords[1])
 	if err != nil {
 		return err
 	}
@@ -129,14 +127,14 @@ func (s *SpriteSheet) frame(row, col int) (rl.Rectangle, error) {
 	}, nil
 }
 
-// FrameLocation returns the rectangle for the frame assuming row-first ordering.
-func (s *SpriteSheet) FrameLocation(f int) (int, int, error) {
+// FrameLocation returns the coordinates for the frame assuming row-first ordering.
+func (s *SpriteSheet) FrameLocation(f int) (FrameCoords, error) {
 	if f < 0 || f >= int(s.rows*s.cols) {
-		return 0, 0, fmt.Errorf("frame %d is out of bounds", f)
+		return FrameCoords{}, fmt.Errorf("frame %d is out of bounds", f)
 	}
 	row := f / int(s.cols)
 	col := f % int(s.cols)
-	return row, col, nil
+	return [2]int{row, col}, nil
 }
 
 // GetSize returns the size of the spritesheet in pixels as a vector.

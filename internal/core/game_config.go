@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cragspider-go/internal/animation"
 	_ "embed"
 	"fmt"
 	"sync"
@@ -18,14 +19,8 @@ const (
 	Black Color = "black"
 )
 
-// Position is a [row,col] on the board.
-type Position [2]int
-
-// Move represents a [deltaRow, deltaCol] move on the boad.
-type Move [2]int
-
 // SpriteCoords is a location [row,col] in a spritesheet.
-type SpriteCoords []Position
+type SpriteCoords []animation.FrameCoords
 
 // PieceConfig represents a type of piece in the game, like bishop or pawn.
 type PieceConfig struct {

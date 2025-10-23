@@ -28,8 +28,9 @@ func TestNewBoard(t *testing.T) {
 	for i, row := range board.cells {
 		for j, cell := range row {
 			// Check that rotation is one of the cardinal directions
-			assert.Contains(t, CardinalDirections, cell.rotation,
-				"Cell at [%d][%d] has invalid rotation vector: %v", i, j, cell.rotation)
+			dir := Move{int(cell.rotation.X), int(cell.rotation.Y)}
+			assert.Contains(t, CardinalDirections, dir,
+				"Cell at [%d][%d] has invalid rotation vector: %v", i, j, dir)
 		}
 	}
 }
