@@ -2,6 +2,9 @@ package core
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewBoard(t *testing.T) {
@@ -9,42 +12,24 @@ func TestNewBoard(t *testing.T) {
 	board := newBoard()
 
 	// Check board dimensions
-	if board.Rows != 10 {
-		t.Errorf("Expected board.Rows to be 10, got %d", board.Rows)
-	}
-	if board.Columns != 10 {
-		t.Errorf("Expected board.Columns to be 10, got %d", board.Columns)
-	}
+	assert.Equal(t, 10, board.Rows, "Board should have 10 rows")
+	assert.Equal(t, 10, board.Columns, "Board should have 10 columns")
 
 	// Check cells slice dimensions
-	if len(board.cells) != 10 {
-		t.Fatalf("Expected 10 rows in cells, got %d", len(board.cells))
-	}
-	for i, row := range board.cells {
-		if len(row) != 10 {
-			t.Errorf("Expected 10 columns in row %d, got %d", i, len(row))
-		}
+	require.Len(t, board.cells, 10, "Cells should have 10 rows")
+	for _, row := range board.cells {
+		assert.Len(t, row, 10, "Each row should have 10 columns")
 	}
 
 	// Check that backgroundSprites is initialized
-	if board.backgroundSprites == nil {
-		t.Error("Expected backgroundSprites to be initialized, got nil")
-	}
+	assert.NotNil(t, board.backgroundSprites, "Background sprites should be initialized")
 
 	// Check that each cell has a valid rotation vector
 	for i, row := range board.cells {
 		for j, cell := range row {
 			// Check that rotation is one of the cardinal directions
-			valid := false
-			for _, dir := range CardinalDirections {
-				if cell.rotation == dir {
-					valid = true
-					break
-				}
-			}
-			if !valid {
-				t.Errorf("Cell at [%d][%d] has invalid rotation vector: %v", i, j, cell.rotation)
-			}
+			assert.Contains(t, CardinalDirections, cell.rotation,
+				"Cell at [%d][%d] has invalid rotation vector: %v", i, j, cell.rotation)
 		}
 	}
 }
