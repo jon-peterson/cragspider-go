@@ -1,0 +1,33 @@
+version: "2" # <-- Ensure you have the version set to "2" or higher
+
+# ... other sections like issues, run, etc.
+
+linters:
+  # List all your true linters here. DO NOT list goimports, gofmt, etc. here.
+  enable:
+    - govet         # Standard Go checks for suspicious constructs
+    - staticcheck   # Go's official successor to the former `megacheck`, a must-have
+    - errcheck      # Checks if errors are handled
+    - nilerr        # Checks if nil is returned with a non-nil error
+    - bodyclose     # Ensures HTTP response bodies are closed
+    - rowserrcheck  # Checks for unhandled errors from database/sql rows
+    - unparam       # Reports unused function parameters
+    - unused        # Reports unused variables/functions/etc.
+    - ineffassign   # Reports unneeded assignments
+    - misspell      # Finds common spelling mistakes
+    - gocritic      # Checks for performance, style, and bug issues
+    - gosec         # Golang security checker
+    - testpackage   # Forces the use of the `package _test` convention
+
+formatters:
+  # List the formatters you want to use here.
+  enable:
+    - goimports
+    - gofmt
+
+  # Configure the formatters in the settings subsection.
+  settings:
+    goimports:
+      # Add your specific goimports settings here, e.g., local-prefixes
+      local-prefixes:
+        - github.com/jon-peterson/cragspider-go
