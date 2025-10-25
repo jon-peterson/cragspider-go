@@ -14,7 +14,13 @@ const (
 
 // Piece is a white or black piece on the board with its associated data
 type Piece struct {
-	name   string
-	color  Color
-	config PieceConfig
+	name     string
+	color    Color
+	config   PieceConfig
+	selected bool
+}
+
+// ToggleSelected toggles the selected state of the piece.
+func (p *Piece) ToggleSelected() {
+	p.selected = !p.selected
 }

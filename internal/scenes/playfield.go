@@ -9,7 +9,8 @@ import (
 )
 
 type Playfield struct {
-	game *core.Game
+	game     *core.Game
+	boardLoc rl.Vector2
 }
 
 var _ Scene = (*Playfield)(nil)
@@ -20,6 +21,7 @@ func (p *Playfield) Init(width, height int) {
 	if err != nil {
 		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
 	}
+	p.boardLoc = rl.Vector2{X: 48, Y: 24}
 	p.game = g
 }
 
@@ -35,6 +37,12 @@ func (p *Playfield) Loop() SceneCode {
 
 // handleInput processes keyboard and mouse input.
 func (p *Playfield) handleInput() {
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		piece := p.game.Board.PieceUnderClick(p.boardLoc, rl.GetMousePosition())
+		if piece != nil {
+			piece.ToggleSelected()
+		}
+	}
 }
 
 // update updates the game state since the last time throuh the gameplay loop.
@@ -47,7 +55,7 @@ func (p *Playfield) render() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.RayWhite)
 
-	if err := p.game.Render(); err != nil {
+	if err := p.game.Board.Render(p.boardLoc); err != nil {
 		rl.TraceLog(rl.LogError, "error rendering game: %v", err)
 	}
 

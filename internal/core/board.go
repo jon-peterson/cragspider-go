@@ -154,6 +154,16 @@ func (b *Board) PositionUnderClick(boardLoc, clickLoc rl.Vector2) (Position, err
 	return Position{int(adjClickLoc.Y / float32(SquareSize)), int(adjClickLoc.X / float32(SquareSize))}, nil
 }
 
+// PieceUnderClick returns the piece under a mouse click, given the board location in the window
+// and where the user clicked. If there's no piece there, then nil is returned.
+func (b *Board) PieceUnderClick(boardLoc, clickLoc rl.Vector2) *Piece {
+	pos, err := b.PositionUnderClick(boardLoc, clickLoc)
+	if err != nil {
+		return nil
+	}
+	return b.pieces[pos[0]][pos[1]]
+}
+
 // PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
 // The piece is copied when placed on the board to prevent accidental modifications.
 func (b *Board) PlacePiece(piece Piece, pos Position) error {
@@ -187,12 +197,17 @@ func (b *Board) Render(boardLoc rl.Vector2) error {
 		for j := range b.Columns {
 			piece := b.pieces[i][j]
 			if piece != nil {
+				// Different sprite sheets for different players of course
 				sheet := b.whiteSprites
 				if piece.color == Black {
 					sheet = b.blackSprites
 				}
+				frame := 0
+				if piece.selected {
+					frame = 1
+				}
 				err := sheet.DrawFrame(
-					piece.config.Sprites[piece.color][0],
+					piece.config.Sprites[piece.color][frame],
 					rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
 					Scale)
 				if err != nil {
