@@ -10,7 +10,7 @@ import (
 
 // Game represents a single instance of a game.
 type Game struct {
-	board  Board
+	board  *Board
 	config *GameConfig
 }
 
@@ -18,10 +18,14 @@ type Game struct {
 func NewGame() (*Game, error) {
 	cfg, err := GetConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load configuration: %w", err)
+	}
+	b, err := newBoard(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create board: %w", err)
 	}
 	return &Game{
-		board:  newBoard(),
+		board:  b,
 		config: cfg,
 	}, nil
 }

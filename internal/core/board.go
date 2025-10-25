@@ -9,8 +9,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// Cell is a physical square on the board.
-type Cell struct {
+// Square is a physical square on the board.
+type Square struct {
 	frame    animation.FrameCoords
 	rotation rl.Vector2
 }
@@ -21,11 +21,30 @@ type Position [2]int
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
 
-// Board is the game board, which is a grid of cells.
+// Color represents the color of a piece or player.
+type Color string
+
+const (
+	// White represents the white player/pieces.
+	White Color = "white"
+	// Black represents the black player/pieces.
+	Black Color = "black"
+)
+
+// Piece is a white or black piece on the board with its associated data
+type Piece struct {
+	name   string
+	color  Color
+	config PieceConfig
+}
+
+// Board is the game board, which is a grid of squares upon which there are pieces.
 type Board struct {
 	Rows, Columns     int
 	backgroundSprites *animation.SpriteSheet
-	cells             [][]Cell
+	squares           [][]Square
+	pieces            [][]*Piece
+	config            *GameConfig // Reference to the game configuration
 }
 
 const (
@@ -41,22 +60,33 @@ var CardinalDirections = [4]Move{
 	{-1, 0}, // left
 }
 
-// newBoard creates a new, empty board.
-func newBoard() Board {
-	b := Board{
+// newBoard creates a new board with the given game configuration.
+// If config is nil, it will use the default configuration.
+func newBoard(config *GameConfig) (*Board, error) {
+	b := &Board{
 		Rows:              10,
 		Columns:           10,
-		cells:             make([][]Cell, 10),
+		squares:           make([][]Square, 10),
+		pieces:            make([][]*Piece, 10),
 		backgroundSprites: animation.LoadSpriteSheet("dungeon_tiles.png", 4, 9),
+		config:            config,
 	}
-	for i := range b.cells {
-		b.cells[i] = make([]Cell, 10)
+	b.initializeSquares()
+	err := b.placeStartingPieces()
+	if err != nil {
+		return nil, err
 	}
 
-	// Initialize the board's cells with surfaces. The surfaces are colored in pairs but are of
+	return b, nil
+}
+
+func (b *Board) initializeSquares() {
+	// Initialize the board's squares with surfaces. The surfaces are colored in pairs but are of
 	// random frame and orientation. This gives the board variety over plays.
-	for i := range b.Rows {
-		for j := range b.Columns {
+	for i := 0; i < b.Rows; i++ {
+		b.squares[i] = make([]Square, b.Columns)
+		b.pieces[i] = make([]*Piece, b.Columns)
+		for j := 0; j < b.Columns; j++ {
 			var f animation.FrameCoords
 			if (i+j)%2 == 0 {
 				f = animation.FrameCoords{
@@ -70,13 +100,62 @@ func newBoard() Board {
 				}
 			}
 			facing := Choice(CardinalDirections[:])
-			b.cells[i][j] = Cell{
+			b.squares[i][j] = Square{
 				frame:    f,
 				rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
 			}
 		}
 	}
-	return b
+}
+
+// placeStartingPieces places all pieces in their starting positions according to the game config.
+func (b *Board) placeStartingPieces() error {
+	for _, color := range []Color{White, Black} {
+		positions, err := b.config.Board.GetStartingPositions(color)
+		if err != nil {
+			return fmt.Errorf("failed to get starting positions for %s: %w", color, err)
+		}
+		for _, pos := range positions {
+			pieceConfig, err := b.config.GetPieceConfig(pos.Name)
+			if err != nil {
+				return fmt.Errorf("failed to get config for piece %s: %w", pos.Name, err)
+			}
+
+			piece := &Piece{
+				name:   pos.Name,
+				color:  color,
+				config: *pieceConfig,
+			}
+
+			if err := b.PlacePiece(*piece, pos.Position); err != nil {
+				return fmt.Errorf("failed to place %s %s at %v: %w", color, pos.Name, pos.Position, err)
+			}
+		}
+	}
+	return nil
+}
+
+// IsOccupied returns true if there's a piece at the specified location.
+func (b *Board) IsOccupied(pos Position) bool {
+	return b.pieces[pos[0]][pos[1]] != nil
+}
+
+// IsValid returns true if the specified position is on the board.
+func (b *Board) IsValid(pos Position) bool {
+	return pos[0] >= 0 && pos[0] < b.Rows && pos[1] >= 0 && pos[1] < b.Columns
+}
+
+// PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
+// The piece is copied when placed on the board to prevent accidental modifications.
+func (b *Board) PlacePiece(piece Piece, pos Position) error {
+	if !b.IsValid(pos) {
+		return fmt.Errorf("position %v is out of bounds", pos)
+	}
+	if b.IsOccupied(pos) {
+		return fmt.Errorf("position %v is occupied", pos)
+	}
+	b.pieces[pos[0]][pos[1]] = &piece
+	return nil
 }
 
 // Render draws the board to the screen at the given location.
@@ -85,10 +164,10 @@ func (b *Board) Render(loc rl.Vector2) error {
 	for i := range b.Rows {
 		for j := range b.Columns {
 			if err := b.backgroundSprites.DrawFrame(
-				b.cells[i][j].frame,
+				b.squares[i][j].frame,
 				rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
 				Scale,
-				b.cells[i][j].rotation); err != nil {
+				b.squares[i][j].rotation); err != nil {
 				return fmt.Errorf("failed to draw cell: %w", err)
 			}
 		}

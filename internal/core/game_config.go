@@ -1,3 +1,5 @@
+// Copyright 2025 Ideograph LLC. All rights reserved.
+
 package core
 
 import (
@@ -7,16 +9,6 @@ import (
 	"sync"
 
 	"gopkg.in/yaml.v3"
-)
-
-// Color represents the color of a piece or player.
-type Color string
-
-const (
-	// White represents the white player/pieces.
-	White Color = "white"
-	// Black represents the black player/pieces.
-	Black Color = "black"
 )
 
 // SpriteCoords is a location [row,col] in a spritesheet.
