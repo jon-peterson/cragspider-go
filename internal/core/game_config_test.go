@@ -20,8 +20,8 @@ func TestLoadConfig(t *testing.T) {
 		warrior, err := cfg.GetPieceConfig("warrior")
 		require.NoError(t, err)
 		assert.Len(t, warrior.Moves, 8, "warrior should have 8 possible moves")
-		assert.Contains(t, warrior.Sprites, "white", "warrior should have white sprites")
-		assert.Contains(t, warrior.Sprites, "black", "warrior should have black sprites")
+		assert.Contains(t, warrior.Sprites, White, "warrior should have white sprites")
+		assert.Contains(t, warrior.Sprites, Black, "warrior should have black sprites")
 
 		// Test board configuration
 		whitePieces, err := cfg.Board.GetStartingPositions(White)

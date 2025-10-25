@@ -21,30 +21,17 @@ type Position [2]int
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
 
-// Color represents the color of a piece or player.
-type Color string
-
-const (
-	// White represents the white player/pieces.
-	White Color = "white"
-	// Black represents the black player/pieces.
-	Black Color = "black"
-)
-
-// Piece is a white or black piece on the board with its associated data
-type Piece struct {
-	name   string
-	color  Color
-	config PieceConfig
-}
-
 // Board is the game board, which is a grid of squares upon which there are pieces.
 type Board struct {
-	Rows, Columns     int
+	Rows, Columns int
+	squares       [][]Square
+	pieces        [][]*Piece
+
 	backgroundSprites *animation.SpriteSheet
-	squares           [][]Square
-	pieces            [][]*Piece
-	config            *GameConfig // Reference to the game configuration
+	whiteSprites      *animation.SpriteSheet
+	blackSprites      *animation.SpriteSheet
+
+	config *GameConfig // Reference to the game configuration
 }
 
 const (
@@ -69,6 +56,8 @@ func newBoard(config *GameConfig) (*Board, error) {
 		squares:           make([][]Square, 10),
 		pieces:            make([][]*Piece, 10),
 		backgroundSprites: animation.LoadSpriteSheet("dungeon_tiles.png", 4, 9),
+		whiteSprites:      animation.LoadSpriteSheet("adventurer_pieces.png", 6, 18),
+		blackSprites:      animation.LoadSpriteSheet("monster_pieces.png", 11, 18),
 		config:            config,
 	}
 	b.initializeSquares()
@@ -80,9 +69,9 @@ func newBoard(config *GameConfig) (*Board, error) {
 	return b, nil
 }
 
+// initializeSquares initializes the board's squares with surfaces. The surfaces are colored in pairs but are of
+// random frame and orientation. This gives the board variety over plays.
 func (b *Board) initializeSquares() {
-	// Initialize the board's squares with surfaces. The surfaces are colored in pairs but are of
-	// random frame and orientation. This gives the board variety over plays.
 	for i := 0; i < b.Rows; i++ {
 		b.squares[i] = make([]Square, b.Columns)
 		b.pieces[i] = make([]*Piece, b.Columns)
@@ -163,14 +152,35 @@ func (b *Board) Render(loc rl.Vector2) error {
 	// First draw the board itself
 	for i := range b.Rows {
 		for j := range b.Columns {
-			if err := b.backgroundSprites.DrawFrame(
+			err := b.backgroundSprites.DrawFrameRotated(
 				b.squares[i][j].frame,
 				rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
 				Scale,
-				b.squares[i][j].rotation); err != nil {
+				b.squares[i][j].rotation)
+			if err != nil {
 				return fmt.Errorf("failed to draw cell: %w", err)
 			}
 		}
 	}
+	// Now draw each of the pieces on the board
+	for i := range b.Rows {
+		for j := range b.Columns {
+			piece := b.pieces[i][j]
+			if piece != nil {
+				sheet := b.whiteSprites
+				if piece.color == Black {
+					sheet = b.blackSprites
+				}
+				err := sheet.DrawFrame(
+					piece.config.Sprites[piece.color][0],
+					rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
+					Scale)
+				if err != nil {
+					return fmt.Errorf("failed to draw piece: %w", err)
+				}
+			}
+		}
+	}
+
 	return nil
 }

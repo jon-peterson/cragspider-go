@@ -16,9 +16,9 @@ type SpriteCoords []animation.FrameCoords
 
 // PieceConfig represents a type of piece in the game, like bishop or pawn.
 type PieceConfig struct {
-	Name    string                  `yaml:"name"`
-	Sprites map[string]SpriteCoords `yaml:"sprites"`
-	Moves   []Move                  `yaml:"moves"`
+	Name    string                 `yaml:"name"`
+	Sprites map[Color]SpriteCoords `yaml:"sprites"`
+	Moves   []Move                 `yaml:"moves"`
 }
 
 // BoardPosition represents a starting position on the board: what piece and where.

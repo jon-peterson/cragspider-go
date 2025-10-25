@@ -86,8 +86,13 @@ func (s *SpriteSheet) String() string {
 	return fmt.Sprintf("%s (%dx%d)", s.name, s.frameWidth, s.frameHeight)
 }
 
-// DrawFrame draws the specified frame at the specified location, scale, and rotation.
-func (s *SpriteSheet) DrawFrame(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
+// DrawFrame draws the specified frame at the specified location, and scale, with a standard up rotation.
+func (s *SpriteSheet) DrawFrame(frameCoords FrameCoords, loc rl.Vector2, scale float32) error {
+	return s.Draw(frameCoords, loc, scale, rl.Vector2{X: 1, Y: 0})
+}
+
+// DrawFrameRotated draws the specified frame at the specified location, scale, and rotation.
+func (s *SpriteSheet) DrawFrameRotated(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
 	return s.Draw(frameCoords, loc, scale, rot)
 }
 

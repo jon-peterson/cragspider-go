@@ -39,15 +39,6 @@ board:
   # Starting board positions
   white:
     - name: "warrior"
-      position: [0, 0]
-    - name: "padwar"
-      position: [0, 1]
-    - name: "padwar"
-      position: [0, 8]
-    - name: "warrior"
-      position: [0, 9]
-  black:
-    - name: "warrior"
       position: [9, 0]
     - name: "padwar"
       position: [9, 1]
@@ -55,3 +46,12 @@ board:
       position: [9, 8]
     - name: "warrior"
       position: [9, 9]
+  black:
+    - name: "warrior"
+      position: [0, 0]
+    - name: "padwar"
+      position: [0, 1]
+    - name: "padwar"
+      position: [0, 8]
+    - name: "warrior"
+      position: [0, 9]
