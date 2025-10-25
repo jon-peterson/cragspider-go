@@ -96,7 +96,8 @@ func (s *SpriteSheet) DrawFrameRotated(frameCoords FrameCoords, loc rl.Vector2, 
 	return s.Draw(frameCoords, loc, scale, rot)
 }
 
-// Draw draws the sprite at the given frame at the given location, scale, and rotation.
+// Draw draws the sprite at the given frame at the given location, scale, and rotation. The location is the upper
+// left hand corner of the sprite, but rotation goes around the center of the sprite.
 func (s *SpriteSheet) Draw(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
 	if s.frameWidth == 0 {
 		// Texture hasn't been loaded yet, so load it now
@@ -108,11 +109,13 @@ func (s *SpriteSheet) Draw(frameCoords FrameCoords, loc rl.Vector2, scale float3
 	if err != nil {
 		return err
 	}
+	width := float32(s.frameWidth) * scale
+	height := float32(s.frameHeight) * scale
 	destination := rl.Rectangle{
-		X:      loc.X,
-		Y:      loc.Y,
-		Width:  float32(s.frameWidth) * scale,
-		Height: float32(s.frameHeight) * scale,
+		X:      loc.X + (width / 2),
+		Y:      loc.Y + (height / 2),
+		Width:  width,
+		Height: height,
 	}
 	rotationDegrees := float32(math.Atan2(float64(rot.Y), float64(rot.X)) * 180 / math.Pi)
 	rl.DrawTexturePro(s.texture, frame, destination, rl.Vector2Scale(s.origin, scale), rotationDegrees, rl.White)
