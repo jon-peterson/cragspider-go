@@ -31,12 +31,16 @@ type Board struct {
 	whiteSprites      *animation.SpriteSheet
 	blackSprites      *animation.SpriteSheet
 
-	config *GameConfig // Reference to the game configuration
+	config *GameConfig
 }
 
 const (
-	CellSize = 24
-	Scale    = 3.0
+	// SpriteSize is the standard size of one of our square sprites
+	SpriteSize = 24
+	// Scale is the scale factor for the board, to make each square bigger than 24x24.
+	Scale float32 = 3.0
+	// SquareSize is the standard size of a square in number of pixels.
+	SquareSize int = SpriteSize * int(Scale)
 )
 
 // CardinalDirections contains unit vectors for the four cardinal directions: up, right, down, left.
@@ -134,6 +138,22 @@ func (b *Board) IsValid(pos Position) bool {
 	return pos[0] >= 0 && pos[0] < b.Rows && pos[1] >= 0 && pos[1] < b.Columns
 }
 
+// PositionUnderClick returns the board position under a mouse click, given the board location in the window
+// and where the user clicked. If the user clicked outside the board, then an error is returned.
+func (b *Board) PositionUnderClick(boardLoc, clickLoc rl.Vector2) (Position, error) {
+	// Shift the position relative to the board upper corner so the click loc is in board space
+	adjClickLoc := rl.Vector2{X: clickLoc.X - boardLoc.X, Y: clickLoc.Y - boardLoc.Y}
+
+	// Check if the click is outside the board bounds
+	if adjClickLoc.X < 0 || adjClickLoc.X >= float32(SquareSize*b.Columns) ||
+		adjClickLoc.Y < 0 || adjClickLoc.Y >= float32(SquareSize*b.Rows) {
+		return Position{}, fmt.Errorf("click is outside the board bounds")
+	}
+
+	// Just scale the click based on the square size
+	return Position{int(adjClickLoc.Y / float32(SquareSize)), int(adjClickLoc.X / float32(SquareSize))}, nil
+}
+
 // PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
 // The piece is copied when placed on the board to prevent accidental modifications.
 func (b *Board) PlacePiece(piece Piece, pos Position) error {
@@ -147,14 +167,14 @@ func (b *Board) PlacePiece(piece Piece, pos Position) error {
 	return nil
 }
 
-// Render draws the board to the screen at the given location.
-func (b *Board) Render(loc rl.Vector2) error {
+// Render draws the board to the screen with the given board location (where the upper left corner is).
+func (b *Board) Render(boardLoc rl.Vector2) error {
 	// First draw the board itself
 	for i := range b.Rows {
 		for j := range b.Columns {
 			err := b.backgroundSprites.DrawFrameRotated(
 				b.squares[i][j].frame,
-				rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
+				rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
 				Scale,
 				b.squares[i][j].rotation)
 			if err != nil {
@@ -173,7 +193,7 @@ func (b *Board) Render(loc rl.Vector2) error {
 				}
 				err := sheet.DrawFrame(
 					piece.config.Sprites[piece.color][0],
-					rl.Vector2{X: loc.X + float32(j*CellSize*Scale), Y: loc.Y + float32(i*CellSize*Scale)},
+					rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
 					Scale)
 				if err != nil {
 					return fmt.Errorf("failed to draw piece: %w", err)
