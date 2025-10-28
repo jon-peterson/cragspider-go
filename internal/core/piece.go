@@ -25,7 +25,7 @@ func (p *Piece) ToggleSelected() {
 	p.selected = !p.selected
 }
 
-// ValidMoves returns a list of valid positions that the piece can move to given the starting position.
+// ValidMoves returns a list of valid positions that the piece can move to from the given starting position.
 func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 	moves := make([]Position, 0, len(p.config.Moves))
 
@@ -34,7 +34,9 @@ func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 			start[0] + move[0],
 			start[1] + move[1],
 		}
-		moves = append(moves, pos)
+		if b.IsValid(pos) {
+			moves = append(moves, pos)
+		}
 	}
 
 	return moves

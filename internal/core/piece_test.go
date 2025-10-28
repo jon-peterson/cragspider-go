@@ -19,40 +19,74 @@ func createTestBoard(rows, cols int) *Board {
 }
 
 func TestPiece_validMoves(t *testing.T) {
+	tests := []struct {
+		name           string
+		startPos       Position
+		expectedMoves  []Position
+		expectedLength int
+	}{
+		{
+			name:     "center position",
+			startPos: Position{2, 2},
+			expectedMoves: []Position{
+				{2, 3}, // One step down
+				{2, 4}, // Two steps down
+				{2, 1}, // One step up
+				{2, 0}, // Two steps up
+				{3, 2}, // One step right
+				{4, 2}, // Two steps right
+				{1, 2}, // One step left
+				{0, 2}, // Two steps left
+			},
+			expectedLength: 8,
+		},
+		{
+			name:     "left edge position",
+			startPos: Position{2, 0},
+			expectedMoves: []Position{
+				{2, 1}, // One step down
+				{2, 2}, // Two steps down
+				{3, 0}, // One step right
+				{4, 0}, // Two steps right
+				{1, 0}, // One step left
+				{0, 0}, // Two steps left
+				// Note: Moves that would go off the top (y < 0) are filtered out
+			},
+			expectedLength: 6, // 2 moves filtered out (y = -1 and y = -2)
+		},
+	}
+
 	// Create a test piece that can move two spaces in each cardinal direction
 	piece := getTestPiece()
 
 	// Create an empty 5x5 board (0,0 is top-left)
 	board := createTestBoard(5, 5)
 
-	// Get valid moves from the center of the board (row 2, col 2)
-	validMoves := piece.ValidMoves(Position{2, 2}, board)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validMoves := piece.ValidMoves(tt.startPos, board)
 
-	// Expected moves (one and two steps in each cardinal direction from position [2,2])
-	expectedMoves := []Position{
-		{2, 3}, // One step down
-		{2, 4}, // Two steps down
-		{2, 1}, // One step up
-		{2, 0}, // Two steps up
-		{3, 2}, // One step right
-		{4, 2}, // Two steps right
-		{1, 2}, // One step left
-		{0, 2}, // Two steps left
-	}
+			// Check that we got the expected number of moves
+			assert.Len(t, validMoves, tt.expectedLength, "Unexpected number of valid moves")
 
-	// Check that we got the expected number of moves
-	assert.Len(t, validMoves, len(expectedMoves), "Unexpected number of valid moves")
-
-	// Check each expected move is in the valid moves
-	for _, expected := range expectedMoves {
-		found := false
-		for _, move := range validMoves {
-			if move[0] == expected[0] && move[1] == expected[1] {
-				found = true
-				break
+			// Check that all returned moves are within board bounds
+			for _, move := range validMoves {
+				assert.True(t, move[0] >= 0 && move[0] < 5, "Move %v has invalid x coordinate (should be 0-4)", move)
+				assert.True(t, move[1] >= 0 && move[1] < 5, "Move %v has invalid y coordinate (should be 0-4)", move)
 			}
-		}
-		assert.True(t, found, "Expected move %v not found in valid moves", expected)
+
+			// Check each expected move is in the valid moves
+			for _, expected := range tt.expectedMoves {
+				found := false
+				for _, move := range validMoves {
+					if move[0] == expected[0] && move[1] == expected[1] {
+						found = true
+						break
+					}
+				}
+				assert.True(t, found, "Expected move %v not found in valid moves", expected)
+			}
+		})
 	}
 }
 
