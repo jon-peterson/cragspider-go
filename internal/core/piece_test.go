@@ -5,6 +5,7 @@ package core
 import (
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,14 +78,7 @@ func TestPiece_validMoves(t *testing.T) {
 
 			// Check each expected move is in the valid moves
 			for _, expected := range tt.expectedMoves {
-				found := false
-				for _, move := range validMoves {
-					if move[0] == expected[0] && move[1] == expected[1] {
-						found = true
-						break
-					}
-				}
-				assert.True(t, found, "Expected move %v not found in valid moves", expected)
+				assert.True(t, lo.Contains(validMoves, expected), "Expected move %v not found in valid moves", expected)
 			}
 		})
 	}
