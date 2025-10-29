@@ -227,14 +227,23 @@ func (b *Board) SelectPiece(p *Piece) {
 
 // Render draws the board to the screen with the given board location (where the upper left corner is).
 func (b *Board) Render(boardLoc rl.Vector2) error {
+	// If there's a selected piece, figure out its valid moves so we can tint the squares
+	var tintedPositions []Position
+	if b.selectedPiece != nil {
+		tintedPositions = b.selectedPiece.Piece.ValidMoves(b.selectedPiece.Position, b)
+		tintedPositions = append(tintedPositions, b.selectedPiece.Position)
+	}
 	// First draw the board itself
 	for i := range b.Rows {
 		for j := range b.Columns {
-			err := b.backgroundSprites.DrawFrameRotated(
+			// If there's a valid move on this square, or if it's the currently selected piece, tint it
+			tint := lo.Ternary(lo.Contains(tintedPositions, Position{i, j}), rl.Green, rl.White)
+			err := b.backgroundSprites.DrawFrame(
 				b.squares[i][j].frame,
 				rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
 				Scale,
-				b.squares[i][j].rotation)
+				b.squares[i][j].rotation,
+				tint)
 			if err != nil {
 				return fmt.Errorf("failed to draw cell: %w", err)
 			}
@@ -265,7 +274,9 @@ func (b *Board) renderPieceOnBoard(boardLoc rl.Vector2, piece *Piece, j int, i i
 	err := sheet.DrawFrame(
 		piece.config.Sprites[piece.color][frame],
 		rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
-		Scale)
+		Scale,
+		rl.Vector2{X: 1.0, Y: 0.0},
+		rl.White)
 	if err != nil {
 		return fmt.Errorf("failed to draw piece: %w", err)
 	}

@@ -4,6 +4,7 @@ package animation
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 	"sync"
 
@@ -86,19 +87,9 @@ func (s *SpriteSheet) String() string {
 	return fmt.Sprintf("%s (%dx%d)", s.name, s.frameWidth, s.frameHeight)
 }
 
-// DrawFrame draws the specified frame at the specified location, and scale, with a standard up rotation.
-func (s *SpriteSheet) DrawFrame(frameCoords FrameCoords, loc rl.Vector2, scale float32) error {
-	return s.Draw(frameCoords, loc, scale, rl.Vector2{X: 1, Y: 0})
-}
-
-// DrawFrameRotated draws the specified frame at the specified location, scale, and rotation.
-func (s *SpriteSheet) DrawFrameRotated(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
-	return s.Draw(frameCoords, loc, scale, rot)
-}
-
-// Draw draws the sprite at the given frame at the given location, scale, and rotation. The location is the upper
+// DrawFrame draws the sprite at the given frame at the given location, scale, and rotation. The location is the upper
 // left hand corner of the sprite, but rotation goes around the center of the sprite.
-func (s *SpriteSheet) Draw(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2) error {
+func (s *SpriteSheet) DrawFrame(frameCoords FrameCoords, loc rl.Vector2, scale float32, rot rl.Vector2, tint color.RGBA) error {
 	if s.frameWidth == 0 {
 		// Texture hasn't been loaded yet, so load it now
 		if err := s.populateTexture(); err != nil {
@@ -118,7 +109,7 @@ func (s *SpriteSheet) Draw(frameCoords FrameCoords, loc rl.Vector2, scale float3
 		Height: height,
 	}
 	rotationDegrees := float32(math.Atan2(float64(rot.Y), float64(rot.X)) * 180 / math.Pi)
-	rl.DrawTexturePro(s.texture, frame, destination, rl.Vector2Scale(s.origin, scale), rotationDegrees, rl.White)
+	rl.DrawTexturePro(s.texture, frame, destination, rl.Vector2Scale(s.origin, scale), rotationDegrees, tint)
 	return nil
 }
 
