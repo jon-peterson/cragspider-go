@@ -220,6 +220,145 @@ func TestBoard_PositionUnderClick(t *testing.T) {
 	})
 }
 
+func TestBoard_PieceLocation(t *testing.T) {
+	// Create a test board
+	board := &Board{
+		Rows:    3,
+		Columns: 3,
+		pieces:  make([][]*Piece, 3),
+	}
+	for i := range board.pieces {
+		board.pieces[i] = make([]*Piece, 3)
+	}
+
+	// Create a test piece and place it at (1,1)
+	piece := &Piece{name: "test_piece", color: White}
+	board.pieces[1][1] = piece
+
+	tests := []struct {
+		name        string
+		piece       *Piece
+		expectedPos Position
+		expectErr   bool
+		errMsg      string
+	}{
+		{
+			name:        "find existing piece",
+			piece:       piece,
+			expectedPos: Position{1, 1},
+			expectErr:   false,
+		},
+		{
+			name:      "piece not on board",
+			piece:     &Piece{name: "other_piece", color: Black},
+			expectErr: true,
+			errMsg:    "not found on board",
+		},
+		{
+			name:      "nil piece",
+			piece:     nil,
+			expectErr: true,
+			errMsg:    "cannot find location of nil piece",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pos, err := board.PieceLocation(tt.piece)
+
+			if tt.expectErr {
+				assert.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedPos, pos)
+			}
+		})
+	}
+}
+
+func TestBoard_SelectPiece(t *testing.T) {
+	// Create a test board
+	board := &Board{
+		Rows:    3,
+		Columns: 3,
+		pieces:  make([][]*Piece, 3),
+	}
+	for i := range board.pieces {
+		board.pieces[i] = make([]*Piece, 3)
+	}
+
+	// Create test pieces
+	piece0 := &Piece{name: "piece0", color: White}
+	piece1 := &Piece{name: "piece1", color: White}
+	piece2 := &Piece{name: "piece2", color: Black}
+	board.pieces[0][0] = piece0
+	board.pieces[1][1] = piece1
+	board.pieces[2][2] = piece2
+
+	tests := []struct {
+		name            string
+		pieceToSelect   *Piece
+		expectSelected  bool
+		expectedPos     Position
+		expectNilSelect bool
+	}{
+		{
+			name:           "select first piece",
+			pieceToSelect:  piece1,
+			expectSelected: true,
+			expectedPos:    Position{1, 1},
+		},
+		{
+			name:           "select second piece",
+			pieceToSelect:  piece2,
+			expectSelected: true,
+			expectedPos:    Position{2, 2},
+		},
+		{
+			name:           "select already selected piece unselects it",
+			pieceToSelect:  piece0,
+			expectSelected: false, // First selection will be true, then we'll select again
+		},
+		{
+			name:           "select nil (unselect)",
+			pieceToSelect:  nil,
+			expectSelected: false,
+		},
+		{
+			name:            "select non-existent piece",
+			pieceToSelect:   &Piece{name: "non-existent", color: White},
+			expectSelected:  false,
+			expectNilSelect: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Start tests with piece 0 already selected
+			board.SelectPiece(piece0)
+
+			// Select the new piece
+			board.SelectPiece(tt.pieceToSelect)
+
+			if tt.expectNilSelect {
+				assert.Nil(t, board.selectedPiece)
+				return
+			}
+
+			if tt.expectSelected {
+				require.NotNil(t, board.selectedPiece, "Expected a piece to be selected")
+				assert.Equal(t, tt.pieceToSelect, board.selectedPiece.Piece)
+				assert.Equal(t, tt.expectedPos, board.selectedPiece.Position)
+			} else {
+				assert.Nil(t, board.selectedPiece, "Expected no piece to be selected")
+			}
+		})
+	}
+}
+
 func TestBoard_PlacePiece(t *testing.T) {
 	cfg, err := GetConfig()
 	require.NoError(t, err)

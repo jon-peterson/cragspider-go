@@ -2,6 +2,8 @@
 
 package core
 
+import "fmt"
+
 // Color represents the color of a piece or player.
 type Color string
 
@@ -17,12 +19,12 @@ type Piece struct {
 	name     string
 	color    Color
 	config   PieceConfig
-	selected bool
+	Selected bool
 }
 
-// ToggleSelected toggles the selected state of the piece.
-func (p *Piece) ToggleSelected() {
-	p.selected = !p.selected
+// String returns a nicely formatted string representation of the piece.
+func (p Piece) String() string {
+	return fmt.Sprintf("%s %s", p.color, p.name)
 }
 
 // ValidMoves returns a list of valid positions that the piece can move to from the given starting position.

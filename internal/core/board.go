@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/samber/lo"
 )
 
 // Square is a physical square on the board.
@@ -21,6 +22,12 @@ type Position [2]int
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
 
+// selectedPieceAndPosition represents a selected piece on the board and its position.
+type selectedPieceAndPosition struct {
+	Piece    *Piece
+	Position Position
+}
+
 // Board is the game board, which is a grid of squares upon which there are pieces.
 type Board struct {
 	Rows, Columns int
@@ -30,6 +37,8 @@ type Board struct {
 	backgroundSprites *animation.SpriteSheet
 	whiteSprites      *animation.SpriteSheet
 	blackSprites      *animation.SpriteSheet
+
+	selectedPiece *selectedPieceAndPosition
 
 	config *GameConfig
 }
@@ -164,6 +173,22 @@ func (b *Board) PieceUnderClick(boardLoc, clickLoc rl.Vector2) *Piece {
 	return b.pieces[pos[0]][pos[1]]
 }
 
+// PieceLocation returns the position of the specified piece on the board, assuming that it can be
+// found. piece should not be nil; if it is, an error is returned.
+func (b *Board) PieceLocation(piece *Piece) (Position, error) {
+	if piece == nil {
+		return Position{}, fmt.Errorf("cannot find location of nil piece")
+	}
+	for i := range b.Rows {
+		for j := range b.Columns {
+			if b.pieces[i][j] == piece {
+				return Position{i, j}, nil
+			}
+		}
+	}
+	return Position{}, fmt.Errorf("%s not found on board", piece)
+}
+
 // PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
 // The piece is copied when placed on the board to prevent accidental modifications.
 func (b *Board) PlacePiece(piece Piece, pos Position) error {
@@ -175,6 +200,29 @@ func (b *Board) PlacePiece(piece Piece, pos Position) error {
 	}
 	b.pieces[pos[0]][pos[1]] = &piece
 	return nil
+}
+
+// SelectPiece selects the specified piece, unselecting any previously selected piece.
+func (b *Board) SelectPiece(p *Piece) {
+	if p == nil {
+		b.selectedPiece = nil
+		return
+	}
+	// Selecting a selected piece unselects it (toggle)
+	if b.selectedPiece != nil && b.selectedPiece.Piece == p {
+		b.selectedPiece = nil
+		return
+	}
+	// Find the position of the piece and store it in the struct
+	pos, err := b.PieceLocation(p)
+	if err != nil {
+		b.selectedPiece = nil
+		return
+	}
+	b.selectedPiece = &selectedPieceAndPosition{
+		Piece:    p,
+		Position: pos,
+	}
 }
 
 // Render draws the board to the screen with the given board location (where the upper left corner is).
@@ -197,25 +245,29 @@ func (b *Board) Render(boardLoc rl.Vector2) error {
 		for j := range b.Columns {
 			piece := b.pieces[i][j]
 			if piece != nil {
-				// Different sprite sheets for different players of course
-				sheet := b.whiteSprites
-				if piece.color == Black {
-					sheet = b.blackSprites
-				}
-				frame := 0
-				if piece.selected {
-					frame = 1
-				}
-				err := sheet.DrawFrame(
-					piece.config.Sprites[piece.color][frame],
-					rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
-					Scale)
-				if err != nil {
-					return fmt.Errorf("failed to draw piece: %w", err)
+				err2 := b.renderPieceOnBoard(boardLoc, piece, j, i)
+				if err2 != nil {
+					return err2
 				}
 			}
 		}
 	}
 
+	return nil
+}
+
+// renderPieceOnBoard renders a single piece on the board at the specified position.
+func (b *Board) renderPieceOnBoard(boardLoc rl.Vector2, piece *Piece, j int, i int) error {
+	// Different sprite sheets for different players of course
+	sheet := lo.Ternary(piece.color == White, b.whiteSprites, b.blackSprites)
+	isSelected := b.selectedPiece != nil && b.selectedPiece.Piece == piece
+	frame := lo.Ternary(isSelected, 0, 1)
+	err := sheet.DrawFrame(
+		piece.config.Sprites[piece.color][frame],
+		rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
+		Scale)
+	if err != nil {
+		return fmt.Errorf("failed to draw piece: %w", err)
+	}
 	return nil
 }

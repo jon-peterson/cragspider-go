@@ -37,15 +37,15 @@ func (p *Playfield) Loop() SceneCode {
 
 // handleInput processes keyboard and mouse input.
 func (p *Playfield) handleInput() {
+
+	// User click is used to register interest in a specific piece
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		piece := p.game.Board.PieceUnderClick(p.boardLoc, rl.GetMousePosition())
-		if piece != nil {
-			piece.ToggleSelected()
-		}
+		p.game.Board.SelectPiece(piece)
 	}
 }
 
-// update updates the game state since the last time throuh the gameplay loop.
+// update updates the game state since the last time through the gameplay loop.
 func (p *Playfield) update() {
 
 }
