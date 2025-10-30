@@ -38,10 +38,34 @@ func (p *Playfield) Loop() SceneCode {
 // handleInput processes keyboard and mouse input.
 func (p *Playfield) handleInput() {
 
-	// User click is used to register interest in a specific piece
+	// User click is used to select a piece, unselect a piece, or move a piece depending
+	// on the current state of the board.
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		piece := p.game.Board.PieceUnderClick(p.boardLoc, rl.GetMousePosition())
-		p.game.Board.SelectPiece(piece)
+		selectedPiece := p.game.Board.SelectedPiece()
+		pieceUnderClick := p.game.Board.PieceUnderClick(p.boardLoc, rl.GetMousePosition())
+		if selectedPiece == nil {
+			// User is trying to select a piece.
+			p.game.Board.SelectPiece(pieceUnderClick)
+		} else if pieceUnderClick == nil {
+			// User is moving the selected piece to an empty square.
+			dest, err := p.game.Board.PositionUnderClick(p.boardLoc, rl.GetMousePosition())
+			if err != nil {
+				// User clicked outside the board, so deselect.
+				p.game.Board.SelectPiece(pieceUnderClick)
+			} else {
+				// User is trying to move into a new square.
+				move := core.Move{
+					dest[0] - selectedPiece.Position[0],
+					dest[1] - selectedPiece.Position[1],
+				}
+				err := p.game.Board.MovePiece(selectedPiece.Piece, selectedPiece.Position, move)
+				if err != nil {
+					rl.TraceLog(rl.LogWarning, "failed to move piece %s: %s", selectedPiece.Piece, err)
+				}
+				// Regardless of whether move was allowed, toggle the selection.
+				p.game.Board.SelectPiece(pieceUnderClick)
+			}
+		}
 	}
 }
 

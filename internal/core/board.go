@@ -32,8 +32,8 @@ func (m Move) String() string {
 	return fmt.Sprintf("[%d,%d]", m[0], m[1])
 }
 
-// selectedPieceAndPosition represents a selected piece on the board and its position.
-type selectedPieceAndPosition struct {
+// SelectedPieceAndPosition represents a selected piece on the board and its position.
+type SelectedPieceAndPosition struct {
 	Piece    *Piece
 	Position Position
 }
@@ -48,7 +48,7 @@ type Board struct {
 	whiteSprites      *animation.SpriteSheet
 	blackSprites      *animation.SpriteSheet
 
-	selectedPiece *selectedPieceAndPosition
+	selectedPiece *SelectedPieceAndPosition
 
 	config *GameConfig
 }
@@ -240,9 +240,9 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
 	return nil
 }
 
-// SelectedPiece returns the currently selected piece, or null if there is none.
-func (b *Board) SelectedPiece() *Piece {
-	return lo.Ternary(b.selectedPiece != nil, b.selectedPiece.Piece, nil)
+// SelectedPiece returns the currently selected piece and position, or null if there is none.
+func (b *Board) SelectedPiece() *SelectedPieceAndPosition {
+	return lo.Ternary(b.selectedPiece != nil, b.selectedPiece, nil)
 }
 
 // SelectPiece selects the specified piece, unselecting any previously selected piece.
@@ -263,7 +263,7 @@ func (b *Board) SelectPiece(p *Piece) {
 		b.selectedPiece = nil
 		return
 	}
-	b.selectedPiece = &selectedPieceAndPosition{
+	b.selectedPiece = &SelectedPieceAndPosition{
 		Piece:    p,
 		Position: pos,
 	}
