@@ -19,8 +19,18 @@ type Square struct {
 // Position is a [row,col] on the board.
 type Position [2]int
 
+// String returns a nicely formatted string representation of the position.
+func (pos Position) String() string {
+	return fmt.Sprintf("[%d,%d]", pos[0], pos[1])
+}
+
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
+
+// String returns a nicely formatted string representation of a move.
+func (m Move) String() string {
+	return fmt.Sprintf("[%d,%d]", m[0], m[1])
+}
 
 // selectedPieceAndPosition represents a selected piece on the board and its position.
 type selectedPieceAndPosition struct {
@@ -129,7 +139,7 @@ func (b *Board) placeStartingPieces() error {
 				config: *pieceConfig,
 			}
 
-			if err := b.PlacePiece(*piece, pos.Position); err != nil {
+			if err := b.PlacePiece(piece, pos.Position); err != nil {
 				return fmt.Errorf("failed to place %s %s at %v: %w", color, pos.Name, pos.Position, err)
 			}
 		}
@@ -190,20 +200,54 @@ func (b *Board) PieceLocation(piece *Piece) (Position, error) {
 }
 
 // PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
-// The piece is copied when placed on the board to prevent accidental modifications.
-func (b *Board) PlacePiece(piece Piece, pos Position) error {
+func (b *Board) PlacePiece(piece *Piece, pos Position) error {
+	if piece == nil {
+		return fmt.Errorf("piece is nil")
+	}
 	if !b.IsValid(pos) {
-		return fmt.Errorf("position %v is out of bounds", pos)
+		return fmt.Errorf("%s is out of bounds", pos)
 	}
 	if b.IsOccupied(pos) {
-		return fmt.Errorf("position %v is occupied", pos)
+		return fmt.Errorf("%s is occupied", pos)
 	}
-	b.pieces[pos[0]][pos[1]] = &piece
+	b.pieces[pos[0]][pos[1]] = piece
 	return nil
+}
+
+// MovePiece moves the existing piece from the specified position. An error is returned if it isn't
+// one of the valid moves for the piece.
+func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
+	// Make sure the piece is actually at that starting position.
+	if b.pieces[start[0]][start[1]] != piece {
+		return fmt.Errorf("%s is not at %s", piece, start)
+	}
+	// Make sure that the move being passed in is valid for this piece from the starting position.
+	validMoves := piece.ValidMoves(start, b)
+	end := Position{
+		start[0] + move[0],
+		start[1] + move[1],
+	}
+	if !lo.Contains(validMoves, end) {
+		return fmt.Errorf("move %v is not valid for piece %s", move, piece)
+	}
+	// Actually put the piece in its new location.
+	err := b.PlacePiece(piece, end)
+	if err != nil {
+		return fmt.Errorf("cannot move %s to %s: %w", piece, end, err)
+	}
+	// Clear the original starting position so a piece can move back.
+	b.pieces[start[0]][start[1]] = nil
+	return nil
+}
+
+// SelectedPiece returns the currently selected piece, or null if there is none.
+func (b *Board) SelectedPiece() *Piece {
+	return lo.Ternary(b.selectedPiece != nil, b.selectedPiece.Piece, nil)
 }
 
 // SelectPiece selects the specified piece, unselecting any previously selected piece.
 func (b *Board) SelectPiece(p *Piece) {
+	// If clicking didn't select a piece, unselect any selected piece
 	if p == nil {
 		b.selectedPiece = nil
 		return

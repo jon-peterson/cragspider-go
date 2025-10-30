@@ -279,6 +279,142 @@ func TestBoard_PieceLocation(t *testing.T) {
 	}
 }
 
+func TestBoard_MovePiece(t *testing.T) {
+	// Create a test board
+	board := &Board{
+		Rows:    5,
+		Columns: 5,
+		pieces:  make([][]*Piece, 5),
+	}
+	for i := range board.pieces {
+		board.pieces[i] = make([]*Piece, 5)
+	}
+
+	// Create test pieces
+	mainPiece := &Piece{
+		name:  "test_piece",
+		color: White,
+		config: PieceConfig{
+			Name: "test_piece",
+			Moves: []Move{
+				{0, 1},  // up
+				{1, 0},  // right
+				{0, -1}, // down
+				{-1, 0}, // left
+			},
+		},
+	}
+	blockerPiece := &Piece{name: "blocker", color: Black}
+	wrongPiece := &Piece{name: "wrong_piece", color: White}
+	middlePos := Position{2, 2}
+
+	tests := []struct {
+		name       string
+		piece      *Piece
+		startPos   Position
+		move       Move
+		setup      func() // Optional setup function
+		wantErr    bool
+		wantErrMsg string
+		verify     func(t *testing.T, b *Board)
+	}{
+		{
+			name:     "valid move right",
+			piece:    mainPiece,
+			startPos: middlePos,
+			move:     Move{1, 0},
+			wantErr:  false,
+			verify: func(t *testing.T, b *Board) {
+				// Verify the piece was moved
+				assert.Nil(t, b.pieces[middlePos[0]][middlePos[1]], "Original position should be empty")
+				expectedPos := Position{middlePos[0] + 1, middlePos[1]}
+				assert.Equal(t, mainPiece, b.pieces[expectedPos[0]][expectedPos[1]], "Piece should be at new position")
+			},
+		},
+		{
+			name:       "invalid diagonal move",
+			piece:      mainPiece,
+			startPos:   middlePos,
+			move:       Move{1, 1},
+			wantErr:    true,
+			wantErrMsg: "is not valid",
+		},
+		{
+			name:       "move off board",
+			piece:      mainPiece,
+			startPos:   Position{0, 0},
+			move:       Move{0, -1},
+			wantErr:    true,
+			wantErrMsg: "is not valid",
+		},
+		{
+			name:     "move to occupied position",
+			piece:    mainPiece,
+			startPos: middlePos,
+			move:     Move{1, 0},
+			setup: func() {
+				// Place a blocker to the right
+				blockerPos := Position{middlePos[0] + 1, middlePos[1]}
+				board.PlacePiece(blockerPiece, blockerPos)
+			},
+			wantErr:    true,
+			wantErrMsg: "cannot move",
+		},
+		{
+			name:     "move from empty position",
+			piece:    mainPiece,
+			startPos: Position{4, 4},
+			move:     Move{0, 1},
+			setup: func() {
+				board.pieces[4][4] = nil
+			},
+			wantErr:    true,
+			wantErrMsg: "is not at [4,4]",
+		},
+		{
+			name:       "move wrong piece",
+			piece:      wrongPiece,
+			startPos:   middlePos,
+			move:       Move{0, 1},
+			wantErr:    true,
+			wantErrMsg: "is not at [2,2]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset the board state
+			for i := range board.pieces {
+				board.pieces[i] = make([]*Piece, 5)
+			}
+			// Put the piece in the right place
+			err := board.PlacePiece(mainPiece, tt.startPos)
+			require.NoError(t, err, "Failed to place piece")
+
+			// Run any test-specific setup
+			if tt.setup != nil {
+				tt.setup()
+			}
+
+			// Execute the move
+			err = board.MovePiece(tt.piece, tt.startPos, tt.move)
+
+			// Verify results
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.wantErrMsg != "" {
+					assert.Contains(t, err.Error(), tt.wantErrMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+				if tt.verify != nil {
+					tt.verify(t, board)
+				}
+			}
+		})
+	}
+}
+
 func TestBoard_SelectPiece(t *testing.T) {
 	// Create a test board
 	board := &Board{
@@ -366,7 +502,7 @@ func TestBoard_PlacePiece(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a test piece
-	piece := Piece{
+	piece := &Piece{
 		name:  "test",
 		color: White,
 	}
