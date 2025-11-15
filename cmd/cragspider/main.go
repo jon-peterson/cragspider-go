@@ -39,15 +39,17 @@ func main() {
 
 // initScene initializes and returns the scene corresponding to the given scene code.
 func initScene(code scenes.SceneCode) scenes.Scene {
-	if code == scenes.AttractModeScene {
+	switch code {
+	case scenes.AttractModeScene:
 		// TODO
-	} else if code == scenes.GameplayScene {
+	case scenes.GameplayScene:
 		gm := &scenes.Playfield{}
 		gm.Init(screenWidth, screenHeight)
 		return gm
-	} else if code == scenes.GameOverScene {
+	case scenes.GameOverScene:
 		// TODO
+	default:
+		rl.TraceLog(rl.LogError, "Unknown or unimplemented scene code %v", code)
 	}
-	rl.TraceLog(rl.LogError, "Unknown or unimplemented scene code %v", code)
 	return nil
 }
