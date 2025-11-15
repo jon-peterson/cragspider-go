@@ -4,6 +4,7 @@ package core
 
 import (
 	"cragspider-go/internal/animation"
+	"cragspider-go/pkg/random"
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -87,16 +88,16 @@ func (b *Board) initializeSquares() {
 			var f animation.FrameCoords
 			if (i+j)%2 == 0 {
 				f = animation.FrameCoords{
-					IntInRange(0, 1),
-					IntInRange(0, 2),
+					random.IntInRange(0, 1),
+					random.IntInRange(0, 2),
 				}
 			} else {
 				f = animation.FrameCoords{
-					IntInRange(0, 1),
-					IntInRange(6, 8),
+					random.IntInRange(0, 1),
+					random.IntInRange(6, 8),
 				}
 			}
-			facing := Choice(CardinalDirections[:])
+			facing := random.Choice(CardinalDirections[:])
 			b.squares[i][j] = Square{
 				Frame:    f,
 				Rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
