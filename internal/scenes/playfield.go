@@ -29,8 +29,19 @@ type Playfield struct {
 var _ Scene = (*Playfield)(nil)
 
 // Init initializes the playfield scene with the given width and height.
+// It uses the default game configuration loaded from the embedded YAML file.
 func (p *Playfield) Init(width, height int) {
-	g, err := core.NewGame()
+	config, err := core.GetConfig()
+	if err != nil {
+		rl.TraceLog(rl.LogFatal, "error loading default configuration: %v", err)
+	}
+	p.InitWithConfig(width, height, config)
+}
+
+// InitWithConfig initializes the playfield scene with the given width, height, and configuration.
+// If config is nil, the default configuration is loaded from the embedded YAML file.
+func (p *Playfield) InitWithConfig(width, height int, cfg *core.GameConfig) {
+	g, err := core.NewGameWithConfig(cfg)
 	if err != nil {
 		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
 	}
