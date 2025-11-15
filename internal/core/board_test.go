@@ -5,7 +5,6 @@ package core
 import (
 	"testing"
 
-	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,14 +30,11 @@ func TestNewBoard(t *testing.T) {
 		assert.Len(t, row, 10, "Each piece row should have 10 columns")
 	}
 
-	// Check that backgroundSprites is initialized
-	assert.NotNil(t, board.backgroundSprites, "Background sprites should be initialized")
-
 	// Check that each cell has a valid rotation vector
 	for i, row := range board.squares {
 		for j, cell := range row {
 			// Check that rotation is one of the cardinal directions
-			dir := Move{int(cell.rotation.X), int(cell.rotation.Y)}
+			dir := Move{int(cell.Rotation.X), int(cell.Rotation.Y)}
 			assert.Contains(t, CardinalDirections, dir,
 				"Square at [%d][%d] has invalid rotation vector: %v", i, j, dir)
 		}
@@ -60,166 +56,6 @@ func TestNewBoard(t *testing.T) {
 	}
 }
 
-func TestBoard_PositionUnderClick(t *testing.T) {
-	// Create a test board with 10x10 grid
-	board := &Board{
-		Rows:    10,
-		Columns: 10,
-	}
-
-	// Board's top-left corner at (100, 100) in screen coordinates
-	boardLoc := rl.Vector2{X: 100, Y: 100}
-
-	tests := []struct {
-		name        string
-		clickX      float32
-		clickY      float32
-		expectedRow int
-		expectedCol int
-		expectErr   bool
-	}{
-		{
-			name:        "top left corner",
-			clickX:      100, // Left edge of first column
-			clickY:      100, // Top edge of first row
-			expectedRow: 0,
-			expectedCol: 0,
-			expectErr:   false,
-		},
-		{
-			name:        "just inside top left corner",
-			clickX:      101,
-			clickY:      101,
-			expectedRow: 0,
-			expectedCol: 0,
-			expectErr:   false,
-		},
-		{
-			name:        "middle of first square",
-			clickX:      float32(100 + SquareSize/2),
-			clickY:      float32(100 + SquareSize/2),
-			expectedRow: 0,
-			expectedCol: 0,
-			expectErr:   false,
-		},
-		{
-			name:        "on the border between squares",
-			clickX:      float32(100 + SquareSize), // Exactly on the border between first and second column
-			clickY:      float32(100 + SquareSize), // Exactly on the border between first and second row
-			expectedRow: 1,                         // Should go to the next row/column
-			expectedCol: 1,
-			expectErr:   false,
-		},
-		{
-			name:      "outside left",
-			clickX:    99,  // Left of the board
-			clickY:    150, // Within board height
-			expectErr: true,
-		},
-		{
-			name:      "outside right",
-			clickX:    float32(100 + 10*SquareSize),
-			clickY:    150,
-			expectErr: true,
-		},
-		{
-			name:      "outside top",
-			clickX:    150,
-			clickY:    99, // Above the board
-			expectErr: true,
-		},
-		{
-			name:      "outside bottom",
-			clickX:    150,
-			clickY:    float32(100 + 10*SquareSize),
-			expectErr: true,
-		},
-		{
-			name:      "bottom right corner of last square",
-			clickX:    float32(100 + 10*SquareSize),
-			clickY:    float32(100 + 10*SquareSize),
-			expectErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			clickLoc := rl.Vector2{X: tt.clickX, Y: tt.clickY}
-			pos, err := board.PositionUnderClick(boardLoc, clickLoc)
-
-			if tt.expectErr {
-				assert.Error(t, err, "Expected an error")
-			} else {
-				assert.NoError(t, err, "Did not expect an error")
-				assert.Equal(t, tt.expectedRow, pos[0], "Unexpected row")
-				assert.Equal(t, tt.expectedCol, pos[1], "Unexpected column")
-			}
-		})
-	}
-
-	t.Run("non-square board", func(t *testing.T) {
-		// Test with a non-square board (5 rows, 10 columns)
-		nonSquareBoard := &Board{
-			Rows:    5,
-			Columns: 10,
-		}
-
-		tests := []struct {
-			name        string
-			clickX      float32
-			clickY      float32
-			expectedRow int
-			expectedCol int
-			expectErr   bool
-		}{
-			{
-				name:        "top left of non-square board",
-				clickX:      50,
-				clickY:      50,
-				expectedRow: 0,
-				expectedCol: 0,
-				expectErr:   false,
-			},
-			{
-				name:        "bottom right of non-square board",
-				clickX:      float32(50 + 10*SquareSize - 1), // Last column
-				clickY:      float32(50 + 5*SquareSize - 1),  // Last row
-				expectedRow: 4,
-				expectedCol: 9,
-				expectErr:   false,
-			},
-			{
-				name:      "outside right edge of non-square board",
-				clickX:    float32(50 + 10*SquareSize + 1), // On the right edge (invalid)
-				clickY:    float32(50 + 2*SquareSize),      // Somewhere in the middle vertically
-				expectErr: true,
-			},
-			{
-				name:      "outside bottom edge of non-square board",
-				clickX:    float32(50 + 5*SquareSize),     // Somewhere in the middle horizontally
-				clickY:    float32(50 + 5*SquareSize + 1), // On the bottom edge (invalid)
-				expectErr: true,
-			},
-		}
-
-		boardLoc := rl.Vector2{X: 50, Y: 50}
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				clickLoc := rl.Vector2{X: tt.clickX, Y: tt.clickY}
-				pos, err := nonSquareBoard.PositionUnderClick(boardLoc, clickLoc)
-
-				if tt.expectErr {
-					assert.Error(t, err, "Expected an error")
-				} else {
-					assert.NoError(t, err, "Did not expect an error")
-					assert.Equal(t, tt.expectedRow, pos[0], "Unexpected row")
-					assert.Equal(t, tt.expectedCol, pos[1], "Unexpected column")
-				}
-			})
-		}
-	})
-}
-
 func TestBoard_PieceLocation(t *testing.T) {
 	// Create a test board
 	board := &Board{
@@ -232,7 +68,7 @@ func TestBoard_PieceLocation(t *testing.T) {
 	}
 
 	// Create a test piece and place it at (1,1)
-	piece := &Piece{name: "test_piece", color: White}
+	piece := &Piece{Name: "test_piece", Color: White}
 	board.pieces[1][1] = piece
 
 	tests := []struct {
@@ -250,7 +86,7 @@ func TestBoard_PieceLocation(t *testing.T) {
 		},
 		{
 			name:      "piece not on board",
-			piece:     &Piece{name: "other_piece", color: Black},
+			piece:     &Piece{Name: "other_piece", Color: Black},
 			expectErr: true,
 			errMsg:    "not found on board",
 		},
@@ -292,9 +128,9 @@ func TestBoard_MovePiece(t *testing.T) {
 
 	// Create test pieces
 	mainPiece := &Piece{
-		name:  "test_piece",
-		color: White,
-		config: PieceConfig{
+		Name:  "test_piece",
+		Color: White,
+		Config: PieceConfig{
 			Name: "test_piece",
 			Moves: []Move{
 				{0, 1},  // up
@@ -304,8 +140,8 @@ func TestBoard_MovePiece(t *testing.T) {
 			},
 		},
 	}
-	blockerPiece := &Piece{name: "blocker", color: Black}
-	wrongPiece := &Piece{name: "wrong_piece", color: White}
+	blockerPiece := &Piece{Name: "blocker", Color: Black}
+	wrongPiece := &Piece{Name: "wrong_piece", Color: White}
 	middlePos := Position{2, 2}
 
 	tests := []struct {
@@ -415,86 +251,6 @@ func TestBoard_MovePiece(t *testing.T) {
 	}
 }
 
-func TestBoard_SelectPiece(t *testing.T) {
-	// Create a test board
-	board := &Board{
-		Rows:    3,
-		Columns: 3,
-		pieces:  make([][]*Piece, 3),
-	}
-	for i := range board.pieces {
-		board.pieces[i] = make([]*Piece, 3)
-	}
-
-	// Create test pieces
-	piece0 := &Piece{name: "piece0", color: White}
-	piece1 := &Piece{name: "piece1", color: White}
-	piece2 := &Piece{name: "piece2", color: Black}
-	board.pieces[0][0] = piece0
-	board.pieces[1][1] = piece1
-	board.pieces[2][2] = piece2
-
-	tests := []struct {
-		name            string
-		pieceToSelect   *Piece
-		expectSelected  bool
-		expectedPos     Position
-		expectNilSelect bool
-	}{
-		{
-			name:           "select first piece",
-			pieceToSelect:  piece1,
-			expectSelected: true,
-			expectedPos:    Position{1, 1},
-		},
-		{
-			name:           "select second piece",
-			pieceToSelect:  piece2,
-			expectSelected: true,
-			expectedPos:    Position{2, 2},
-		},
-		{
-			name:           "select already selected piece unselects it",
-			pieceToSelect:  piece0,
-			expectSelected: false, // First selection will be true, then we'll select again
-		},
-		{
-			name:           "select nil (unselect)",
-			pieceToSelect:  nil,
-			expectSelected: false,
-		},
-		{
-			name:            "select non-existent piece",
-			pieceToSelect:   &Piece{name: "non-existent", color: White},
-			expectSelected:  false,
-			expectNilSelect: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Start tests with piece 0 already selected
-			board.SelectPiece(piece0)
-
-			// Select the new piece
-			board.SelectPiece(tt.pieceToSelect)
-
-			if tt.expectNilSelect {
-				assert.Nil(t, board.selectedPiece)
-				return
-			}
-
-			if tt.expectSelected {
-				require.NotNil(t, board.selectedPiece, "Expected a piece to be selected")
-				assert.Equal(t, tt.pieceToSelect, board.selectedPiece.Piece)
-				assert.Equal(t, tt.expectedPos, board.selectedPiece.Position)
-			} else {
-				assert.Nil(t, board.selectedPiece, "Expected no piece to be selected")
-			}
-		})
-	}
-}
-
 func TestBoard_PlacePiece(t *testing.T) {
 	cfg, err := GetConfig()
 	require.NoError(t, err)
@@ -503,8 +259,8 @@ func TestBoard_PlacePiece(t *testing.T) {
 
 	// Create a test piece
 	piece := &Piece{
-		name:  "test",
-		color: White,
+		Name:  "test",
+		Color: White,
 	}
 
 	t.Run("place piece in empty position", func(t *testing.T) {
@@ -512,8 +268,8 @@ func TestBoard_PlacePiece(t *testing.T) {
 		err := board.PlacePiece(piece, pos)
 		require.NoError(t, err, "Should be able to place piece in empty position")
 		assert.NotNil(t, board.pieces[pos[0]][pos[1]], "Piece should be placed on the board")
-		assert.Equal(t, piece.name, board.pieces[pos[0]][pos[1]].name, "Placed piece should have the correct name")
-		assert.Equal(t, piece.color, board.pieces[pos[0]][pos[1]].color, "Placed piece should have the correct color")
+		assert.Equal(t, piece.Name, board.pieces[pos[0]][pos[1]].Name, "Placed piece should have the correct name")
+		assert.Equal(t, piece.Color, board.pieces[pos[0]][pos[1]].Color, "Placed piece should have the correct color")
 	})
 
 	t.Run("cannot place in occupied position", func(t *testing.T) {

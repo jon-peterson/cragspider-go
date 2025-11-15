@@ -87,9 +87,9 @@ func TestPiece_validMoves(t *testing.T) {
 // getTestPiece returns a standard piece that can move two steps in each cardinal direction
 func getTestPiece() *Piece {
 	piece := &Piece{
-		name:  "test_piece",
-		color: White,
-		config: PieceConfig{
+		Name:  "test_piece",
+		Color: White,
+		Config: PieceConfig{
 			Name: "test_piece",
 			Moves: []Move{
 				{1, 0},

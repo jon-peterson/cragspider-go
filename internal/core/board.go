@@ -12,8 +12,8 @@ import (
 
 // Square is a physical square on the board.
 type Square struct {
-	frame    animation.FrameCoords
-	rotation rl.Vector2
+	Frame    animation.FrameCoords
+	Rotation rl.Vector2
 }
 
 // Position is a [row,col] on the board.
@@ -44,12 +44,6 @@ type Board struct {
 	squares       [][]Square
 	pieces        [][]*Piece
 
-	backgroundSprites *animation.SpriteSheet
-	whiteSprites      *animation.SpriteSheet
-	blackSprites      *animation.SpriteSheet
-
-	selectedPiece *SelectedPieceAndPosition
-
 	config *GameConfig
 }
 
@@ -74,14 +68,11 @@ var CardinalDirections = [4]Move{
 // If config is nil, it will use the default configuration.
 func newBoard(config *GameConfig) (*Board, error) {
 	b := &Board{
-		Rows:              10,
-		Columns:           10,
-		squares:           make([][]Square, 10),
-		pieces:            make([][]*Piece, 10),
-		backgroundSprites: animation.LoadSpriteSheet("dungeon_tiles.png", 4, 9),
-		whiteSprites:      animation.LoadSpriteSheet("adventurer_pieces.png", 6, 18),
-		blackSprites:      animation.LoadSpriteSheet("monster_pieces.png", 11, 18),
-		config:            config,
+		Rows:    10,
+		Columns: 10,
+		squares: make([][]Square, 10),
+		pieces:  make([][]*Piece, 10),
+		config:  config,
 	}
 	b.initializeSquares()
 	err := b.placeStartingPieces()
@@ -113,8 +104,8 @@ func (b *Board) initializeSquares() {
 			}
 			facing := Choice(CardinalDirections[:])
 			b.squares[i][j] = Square{
-				frame:    f,
-				rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
+				Frame:    f,
+				Rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
 			}
 		}
 	}
@@ -134,9 +125,9 @@ func (b *Board) placeStartingPieces() error {
 			}
 
 			piece := &Piece{
-				name:   pos.Name,
-				color:  color,
-				config: *pieceConfig,
+				Name:   pos.Name,
+				Color:  color,
+				Config: *pieceConfig,
 			}
 
 			if err := b.PlacePiece(piece, pos.Position); err != nil {
@@ -155,32 +146,6 @@ func (b *Board) IsOccupied(pos Position) bool {
 // IsValid returns true if the specified position is on the board.
 func (b *Board) IsValid(pos Position) bool {
 	return pos[0] >= 0 && pos[0] < b.Rows && pos[1] >= 0 && pos[1] < b.Columns
-}
-
-// PositionUnderClick returns the board position under a mouse click, given the board location in the window
-// and where the user clicked. If the user clicked outside the board, then an error is returned.
-func (b *Board) PositionUnderClick(boardLoc, clickLoc rl.Vector2) (Position, error) {
-	// Shift the position relative to the board upper corner so the click loc is in board space
-	adjClickLoc := rl.Vector2{X: clickLoc.X - boardLoc.X, Y: clickLoc.Y - boardLoc.Y}
-
-	// Check if the click is outside the board bounds
-	if adjClickLoc.X < 0 || adjClickLoc.X >= float32(SquareSize*b.Columns) ||
-		adjClickLoc.Y < 0 || adjClickLoc.Y >= float32(SquareSize*b.Rows) {
-		return Position{}, fmt.Errorf("click is outside the board bounds")
-	}
-
-	// Just scale the click based on the square size
-	return Position{int(adjClickLoc.Y / float32(SquareSize)), int(adjClickLoc.X / float32(SquareSize))}, nil
-}
-
-// PieceUnderClick returns the piece under a mouse click, given the board location in the window
-// and where the user clicked. If there's no piece there, then nil is returned.
-func (b *Board) PieceUnderClick(boardLoc, clickLoc rl.Vector2) *Piece {
-	pos, err := b.PositionUnderClick(boardLoc, clickLoc)
-	if err != nil {
-		return nil
-	}
-	return b.pieces[pos[0]][pos[1]]
 }
 
 // PieceLocation returns the position of the specified piece on the board, assuming that it can be
@@ -240,89 +205,12 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
 	return nil
 }
 
-// SelectedPiece returns the currently selected piece and position, or null if there is none.
-func (b *Board) SelectedPiece() *SelectedPieceAndPosition {
-	return lo.Ternary(b.selectedPiece != nil, b.selectedPiece, nil)
+// GetSquareAt returns the square at the given position.
+func (b *Board) GetSquareAt(pos Position) *Square {
+	return &b.squares[pos[0]][pos[1]]
 }
 
-// SelectPiece selects the specified piece, unselecting any previously selected piece.
-func (b *Board) SelectPiece(p *Piece) {
-	// If clicking didn't select a piece, unselect any selected piece
-	if p == nil {
-		b.selectedPiece = nil
-		return
-	}
-	// Selecting a selected piece unselects it (toggle)
-	if b.selectedPiece != nil && b.selectedPiece.Piece == p {
-		b.selectedPiece = nil
-		return
-	}
-	// Find the position of the piece and store it in the struct
-	pos, err := b.PieceLocation(p)
-	if err != nil {
-		b.selectedPiece = nil
-		return
-	}
-	b.selectedPiece = &SelectedPieceAndPosition{
-		Piece:    p,
-		Position: pos,
-	}
-}
-
-// Render draws the board to the screen with the given board location (where the upper left corner is).
-func (b *Board) Render(boardLoc rl.Vector2) error {
-	// If there's a selected piece, figure out its valid moves so we can tint the squares
-	var tintedPositions []Position
-	if b.selectedPiece != nil {
-		tintedPositions = b.selectedPiece.Piece.ValidMoves(b.selectedPiece.Position, b)
-		tintedPositions = append(tintedPositions, b.selectedPiece.Position)
-	}
-	// First draw the board itself
-	for i := range b.Rows {
-		for j := range b.Columns {
-			// If there's a valid move on this square, or if it's the currently selected piece, tint it
-			tint := lo.Ternary(lo.Contains(tintedPositions, Position{i, j}), rl.Green, rl.White)
-			err := b.backgroundSprites.DrawFrame(
-				b.squares[i][j].frame,
-				rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
-				Scale,
-				b.squares[i][j].rotation,
-				tint)
-			if err != nil {
-				return fmt.Errorf("failed to draw cell: %w", err)
-			}
-		}
-	}
-	// Now draw each of the pieces on the board
-	for i := range b.Rows {
-		for j := range b.Columns {
-			piece := b.pieces[i][j]
-			if piece != nil {
-				err2 := b.renderPieceOnBoard(boardLoc, piece, j, i)
-				if err2 != nil {
-					return err2
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// renderPieceOnBoard renders a single piece on the board at the specified position.
-func (b *Board) renderPieceOnBoard(boardLoc rl.Vector2, piece *Piece, j int, i int) error {
-	// Different sprite sheets for different players of course
-	sheet := lo.Ternary(piece.color == White, b.whiteSprites, b.blackSprites)
-	isSelected := b.selectedPiece != nil && b.selectedPiece.Piece == piece
-	frame := lo.Ternary(isSelected, 0, 1)
-	err := sheet.DrawFrame(
-		piece.config.Sprites[piece.color][frame],
-		rl.Vector2{X: boardLoc.X + float32(j*SquareSize), Y: boardLoc.Y + float32(i*SquareSize)},
-		Scale,
-		rl.Vector2{X: 1.0, Y: 0.0},
-		rl.White)
-	if err != nil {
-		return fmt.Errorf("failed to draw piece: %w", err)
-	}
-	return nil
+// GetPieceAt returns the piece at the given position, or nil if empty.
+func (b *Board) GetPieceAt(pos Position) *Piece {
+	return b.pieces[pos[0]][pos[1]]
 }

@@ -1,0 +1,190 @@
+// Copyright 2025 Ideograph LLC. All rights reserved.
+
+package scenes
+
+import (
+	"testing"
+
+	"cragspider-go/internal/core"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestPlayfield_PositionUnderClick(t *testing.T) {
+	// Create a test playfield with a 10x10 board
+	pf := &Playfield{
+		boardLoc: rl.Vector2{X: 100, Y: 100},
+	}
+
+	// Create a mock game with a board
+	game, err := core.NewGame()
+	require.NoError(t, err)
+	pf.game = game
+
+	tests := []struct {
+		name        string
+		clickX      float32
+		clickY      float32
+		expectedRow int
+		expectedCol int
+		expectErr   bool
+	}{
+		{
+			name:        "top left corner",
+			clickX:      100, // Left edge of first column
+			clickY:      100, // Top edge of first row
+			expectedRow: 0,
+			expectedCol: 0,
+			expectErr:   false,
+		},
+		{
+			name:        "just inside top left corner",
+			clickX:      101,
+			clickY:      101,
+			expectedRow: 0,
+			expectedCol: 0,
+			expectErr:   false,
+		},
+		{
+			name:        "middle of first square",
+			clickX:      float32(100 + core.SquareSize/2),
+			clickY:      float32(100 + core.SquareSize/2),
+			expectedRow: 0,
+			expectedCol: 0,
+			expectErr:   false,
+		},
+		{
+			name:        "on the border between squares",
+			clickX:      float32(100 + core.SquareSize), // Exactly on the border between first and second column
+			clickY:      float32(100 + core.SquareSize), // Exactly on the border between first and second row
+			expectedRow: 1,                              // Should go to the next row/column
+			expectedCol: 1,
+			expectErr:   false,
+		},
+		{
+			name:      "outside left",
+			clickX:    99,  // Left of the board
+			clickY:    150, // Within board height
+			expectErr: true,
+		},
+		{
+			name:      "outside right",
+			clickX:    float32(100 + 10*core.SquareSize),
+			clickY:    150,
+			expectErr: true,
+		},
+		{
+			name:      "outside top",
+			clickX:    150,
+			clickY:    99, // Above the board
+			expectErr: true,
+		},
+		{
+			name:      "outside bottom",
+			clickX:    150,
+			clickY:    float32(100 + 10*core.SquareSize),
+			expectErr: true,
+		},
+		{
+			name:      "bottom right corner of last square",
+			clickX:    float32(100 + 10*core.SquareSize),
+			clickY:    float32(100 + 10*core.SquareSize),
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			clickLoc := rl.Vector2{X: tt.clickX, Y: tt.clickY}
+			pos, err := pf.PositionUnderClick(clickLoc)
+
+			if tt.expectErr {
+				assert.Error(t, err, "Expected an error")
+			} else {
+				assert.NoError(t, err, "Did not expect an error")
+				assert.Equal(t, tt.expectedRow, pos[0], "Unexpected row")
+				assert.Equal(t, tt.expectedCol, pos[1], "Unexpected column")
+			}
+		})
+	}
+}
+
+func TestPlayfield_SelectPiece(t *testing.T) {
+	// Create a test playfield with a custom board
+	game, err := core.NewGame()
+	require.NoError(t, err)
+
+	pf := &Playfield{
+		game: game,
+	}
+
+	// Create test pieces
+	piece0 := &core.Piece{Name: "piece0", Color: core.White, Config: core.PieceConfig{}}
+	piece1 := &core.Piece{Name: "piece1", Color: core.White, Config: core.PieceConfig{}}
+	piece2 := &core.Piece{Name: "piece2", Color: core.Black, Config: core.PieceConfig{}}
+	require.NoError(t, game.Board.PlacePiece(piece0, core.Position{4, 4}))
+	require.NoError(t, game.Board.PlacePiece(piece1, core.Position{5, 5}))
+	require.NoError(t, game.Board.PlacePiece(piece2, core.Position{6, 6}))
+
+	tests := []struct {
+		name            string
+		pieceToSelect   *core.Piece
+		expectSelected  bool
+		expectedPos     core.Position
+		expectNilSelect bool
+	}{
+		{
+			name:           "select first piece",
+			pieceToSelect:  piece1,
+			expectSelected: true,
+			expectedPos:    core.Position{5, 5},
+		},
+		{
+			name:           "select second piece",
+			pieceToSelect:  piece2,
+			expectSelected: true,
+			expectedPos:    core.Position{6, 6},
+		},
+		{
+			name:           "select already selected piece unselects it",
+			pieceToSelect:  piece0,
+			expectSelected: false, // First selection will be true, then we'll select again
+		},
+		{
+			name:           "select nil (unselect)",
+			pieceToSelect:  nil,
+			expectSelected: false,
+		},
+		{
+			name:            "select non-existent piece",
+			pieceToSelect:   &core.Piece{Name: "non-existent", Color: core.White},
+			expectSelected:  false,
+			expectNilSelect: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Start tests with piece 0 already selected
+			pf.SelectPiece(piece0)
+
+			// Select the new piece
+			pf.SelectPiece(tt.pieceToSelect)
+
+			if tt.expectNilSelect {
+				assert.Nil(t, pf.selectedPiece)
+				return
+			}
+
+			if tt.expectSelected {
+				require.NotNil(t, pf.selectedPiece, "Expected a piece to be selected")
+				assert.Equal(t, tt.pieceToSelect, pf.selectedPiece.Piece)
+				assert.Equal(t, tt.expectedPos, pf.selectedPiece.Position)
+			} else {
+				assert.Nil(t, pf.selectedPiece, "Expected no piece to be selected")
+			}
+		})
+	}
+}
