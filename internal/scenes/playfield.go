@@ -11,10 +11,16 @@ import (
 	"github.com/samber/lo"
 )
 
+// SelectedPieceAndPosition represents a selected piece on the board and its position.
+type SelectedPieceAndPosition struct {
+	Piece    *core.Piece
+	Position core.Position
+}
+
 type Playfield struct {
 	game              *core.Game
 	boardLoc          rl.Vector2
-	selectedPiece     *core.SelectedPieceAndPosition
+	selectedPiece     *SelectedPieceAndPosition
 	backgroundSprites *animation.SpriteSheet
 	whiteSprites      *animation.SpriteSheet
 	blackSprites      *animation.SpriteSheet
@@ -130,14 +136,14 @@ func (p *Playfield) SelectPiece(piece *core.Piece) {
 		p.selectedPiece = nil
 		return
 	}
-	p.selectedPiece = &core.SelectedPieceAndPosition{
+	p.selectedPiece = &SelectedPieceAndPosition{
 		Piece:    piece,
 		Position: pos,
 	}
 }
 
 // SelectedPiece returns the currently selected piece and position, or null if there is none.
-func (p *Playfield) SelectedPiece() *core.SelectedPieceAndPosition {
+func (p *Playfield) SelectedPiece() *SelectedPieceAndPosition {
 	return lo.Ternary(p.selectedPiece != nil, p.selectedPiece, nil)
 }
 

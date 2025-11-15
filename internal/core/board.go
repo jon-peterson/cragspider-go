@@ -32,12 +32,6 @@ func (m Move) String() string {
 	return fmt.Sprintf("[%d,%d]", m[0], m[1])
 }
 
-// SelectedPieceAndPosition represents a selected piece on the board and its position.
-type SelectedPieceAndPosition struct {
-	Piece    *Piece
-	Position Position
-}
-
 // Board is the game board, which is a grid of squares upon which there are pieces.
 type Board struct {
 	Rows, Columns int
@@ -140,7 +134,7 @@ func (b *Board) placeStartingPieces() error {
 
 // IsOccupied returns true if there's a piece at the specified location.
 func (b *Board) IsOccupied(pos Position) bool {
-	return b.pieces[pos[0]][pos[1]] != nil
+	return b.GetPieceAt(pos) != nil
 }
 
 // IsValid returns true if the specified position is on the board.

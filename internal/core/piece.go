@@ -16,10 +16,9 @@ const (
 
 // Piece is a white or black piece on the board with its associated data
 type Piece struct {
-	Name     string
-	Color    Color
-	Config   PieceConfig
-	Selected bool
+	Name   string
+	Color  Color
+	Config PieceConfig
 }
 
 // String returns a nicely formatted string representation of the piece.
