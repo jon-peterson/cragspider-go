@@ -38,9 +38,9 @@ func (p *Playfield) Init(width, height int) {
 	p.game = g
 
 	// Initialize sprite sheets for rendering
-	p.backgroundSprites = animation.LoadSpriteSheet("dungeon_tiles.png", 4, 9)
-	p.whiteSprites = animation.LoadSpriteSheet("adventurer_pieces.png", 6, 18)
-	p.blackSprites = animation.LoadSpriteSheet("monster_pieces.png", 11, 18)
+	p.backgroundSprites = animation.Load("dungeon_tiles.png", 4, 9)
+	p.whiteSprites = animation.Load("adventurer_pieces.png", 6, 18)
+	p.blackSprites = animation.Load("monster_pieces.png", 11, 18)
 }
 
 // Loop is the basic gameplay loop. Returns a scene code to indicate the next scene.
@@ -106,16 +106,15 @@ func (p *Playfield) render() {
 
 // Close closes the game and cleans up resources.
 func (p *Playfield) Close() {
-	// Unload sprite sheets
-	//if p.backgroundSprites != nil {
-	//	p.backgroundSprites.Unload()
-	//}
-	//if p.whiteSprites != nil {
-	//	p.whiteSprites.Unload()
-	//}
-	//if p.blackSprites != nil {
-	//	p.blackSprites.Unload()
-	//}
+	if p.backgroundSprites != nil {
+		p.backgroundSprites.Unload()
+	}
+	if p.whiteSprites != nil {
+		p.whiteSprites.Unload()
+	}
+	if p.blackSprites != nil {
+		p.blackSprites.Unload()
+	}
 }
 
 // SelectPiece selects the specified piece, unselecting any previously selected piece.

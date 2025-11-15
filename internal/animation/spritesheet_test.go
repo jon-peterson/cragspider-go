@@ -17,7 +17,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestSpriteSheet_frame(t *testing.T) {
-	sheet := LoadSpriteSheet("test_sheet.png", 4, 7)
+	sheet := Load("test_sheet.png", 4, 7)
+	defer sheet.Unload()
 
 	tests := []struct {
 		name     string
@@ -94,7 +95,8 @@ func TestSpriteSheet_frame(t *testing.T) {
 }
 
 func TestSpriteSheet_GetRectangle(t *testing.T) {
-	sheet := LoadSpriteSheet("test_sheet.png", 4, 7)
+	sheet := Load("test_sheet.png", 4, 7)
+	defer sheet.Unload()
 
 	center := rl.NewVector2(50, 50)
 	expected := rl.Rectangle{
@@ -109,7 +111,8 @@ func TestSpriteSheet_GetRectangle(t *testing.T) {
 }
 
 func TestSpriteSheet_GetSize(t *testing.T) {
-	sheet := LoadSpriteSheet("test_sheet.png", 4, 7)
+	sheet := Load("test_sheet.png", 4, 7)
+	defer sheet.Unload()
 
 	expected := rl.Vector2{X: float32(sheet.frameWidth), Y: float32(sheet.frameHeight)}
 	assert.Equal(t, expected, sheet.GetSize(), "Size should match frame dimensions")
@@ -117,8 +120,10 @@ func TestSpriteSheet_GetSize(t *testing.T) {
 
 func TestLoadSpriteSheet_Cache(t *testing.T) {
 	// Load the sprite sheet for the first time
-	sheet1 := LoadSpriteSheet("test_sheet.png", 2, 2)
-	sheet2 := LoadSpriteSheet("test_sheet.png", 2, 2)
+	sheet1 := Load("test_sheet.png", 2, 2)
+	sheet2 := Load("test_sheet.png", 2, 2)
+	defer sheet1.Unload()
+	defer sheet2.Unload()
 
 	// Verify that the same pointer is returned
 	samePointer := assert.Same(t, sheet1, sheet2, "Should return the same sprite sheet instance from cache")

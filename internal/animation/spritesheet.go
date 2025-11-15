@@ -39,9 +39,9 @@ func newSheetMap() *spriteSheetMap {
 	}
 }
 
-// LoadSpriteSheet creates a new spritesheet from the given file, with deferred loading of
+// Load creates a new spritesheet from the given file, with deferred loading of
 // the actual texture. These are cached for performance.
-func LoadSpriteSheet(file string, rows, cols int) *SpriteSheet {
+func Load(file string, rows, cols int) *SpriteSheet {
 	sheetMap.mapLock.RLock()
 	if sprite, ok := sheetMap.spritesMap[file]; ok {
 		sheetMap.mapLock.RUnlock()
@@ -58,6 +58,14 @@ func LoadSpriteSheet(file string, rows, cols int) *SpriteSheet {
 	}
 	sheetMap.spritesMap[file] = &s
 	return &s
+}
+
+// Unload unloads the sprite sheet from memory.
+func (s *SpriteSheet) Unload() {
+	sheetMap.mapLock.Lock()
+	defer sheetMap.mapLock.Unlock()
+	delete(sheetMap.spritesMap, s.name)
+	rl.UnloadTexture(s.texture)
 }
 
 // populateTexture loads a spritesheet from the saved filename, or returns an error if it can't.
