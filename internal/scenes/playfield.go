@@ -34,8 +34,16 @@ func (p *Playfield) Init(width, height int) {
 	if err != nil {
 		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
 	}
-	p.boardLoc = rl.Vector2{X: 48, Y: 24}
 	p.game = g
+
+	// Calculate board dimensions
+	boardWidth := p.game.Board.Columns * core.SquareSize
+	boardHeight := p.game.Board.Rows * core.SquareSize
+
+	// Center the board in the window by calculating the upper-left corner position
+	boardX := float32(width-boardWidth) / 2
+	boardY := float32(height-boardHeight) / 2
+	p.boardLoc = rl.Vector2{X: boardX, Y: boardY}
 
 	// Initialize sprite sheets for rendering
 	p.backgroundSprites = animation.Load("dungeon_tiles.png", 4, 9)

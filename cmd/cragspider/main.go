@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	screenWidth  = 1024
-	screenHeight = 768
+	screenWidth  = 1920
+	screenHeight = 1080
 )
 
 // main is the entry point for the Cragspider game. Spawns a window and runs the game inside.
