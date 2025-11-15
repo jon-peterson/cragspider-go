@@ -70,10 +70,9 @@ func (p *Playfield) handleInput() {
 		selectedPiece := p.SelectedPiece()
 		pieceUnderClick := p.PieceUnderClick(rl.GetMousePosition())
 		if selectedPiece == nil {
-			// User is trying to select a piece.
 			p.SelectPiece(pieceUnderClick)
-		} else if pieceUnderClick == nil {
-			// User is moving the selected piece to an empty square.
+		} else {
+			// User is trying to move selected piece to a new location
 			dest, err := p.PositionUnderClick(rl.GetMousePosition())
 			if err != nil {
 				// User clicked outside the board, so deselect.
@@ -84,15 +83,21 @@ func (p *Playfield) handleInput() {
 					dest[0] - selectedPiece.Position[0],
 					dest[1] - selectedPiece.Position[1],
 				}
-				err := p.game.Board.MovePiece(selectedPiece.Piece, selectedPiece.Position, move)
+				err = p.movePiece(selectedPiece, move)
 				if err != nil {
 					rl.TraceLog(rl.LogWarning, "failed to move piece %s: %s", selectedPiece.Piece, err)
 				}
-				// Regardless of whether move was allowed, toggle the selection.
-				p.SelectPiece(pieceUnderClick)
+				p.SelectPiece(nil)
 			}
 		}
 	}
+}
+
+// movePiece takes the selected piece and tries to make the specified move. This fails if the location isn't
+// a valid one.
+func (p *Playfield) movePiece(spp *SelectedPieceAndPosition, move core.Move) error {
+	err := p.game.Board.MovePiece(spp.Piece, spp.Position, move)
+	return err
 }
 
 // update updates the game state since the last time through the gameplay loop.
