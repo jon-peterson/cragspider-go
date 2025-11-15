@@ -3,7 +3,7 @@
 package core
 
 import (
-	"cragspider-go/internal/animation"
+	"cragspider-go/pkg/animation"
 	_ "embed"
 	"fmt"
 	"sync"

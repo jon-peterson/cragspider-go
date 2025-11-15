@@ -3,8 +3,8 @@
 package scenes
 
 import (
-	"cragspider-go/internal/animation"
 	"cragspider-go/internal/core"
+	"cragspider-go/pkg/animation"
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
