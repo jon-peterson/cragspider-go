@@ -5,6 +5,7 @@ package scenes
 import (
 	"cragspider-go/internal/core"
 	"fmt"
+	"image/color"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/samber/lo"
@@ -14,15 +15,17 @@ import (
 func (p *Playfield) renderBoard() error {
 	// If there's a selected piece, figure out its valid moves so we can tint the squares
 	var tintedPositions []core.Position
+	var tintColor color.RGBA
 	if p.selectedPiece != nil {
 		tintedPositions = p.selectedPiece.Piece.ValidMoves(p.selectedPiece.Position, p.game.Board)
 		tintedPositions = append(tintedPositions, p.selectedPiece.Position)
+		tintColor = lo.Ternary(p.selectedPiece.Piece.Color == core.White, rl.Green, rl.Red)
 	}
 	// First draw the board itself
 	for i := range p.game.Board.Rows {
 		for j := range p.game.Board.Columns {
 			// If there's a valid move on this square, or if it's the currently selected piece, tint it
-			tint := lo.Ternary(lo.Contains(tintedPositions, core.Position{i, j}), rl.Green, rl.White)
+			tint := lo.Ternary(lo.Contains(tintedPositions, core.Position{i, j}), tintColor, rl.White)
 			err := p.backgroundSprites.DrawFrame(
 				p.game.Board.GetSquareAt(core.Position{i, j}).Frame,
 				rl.Vector2{X: p.boardLoc.X + float32(j*core.SquareSize), Y: p.boardLoc.Y + float32(i*core.SquareSize)},
