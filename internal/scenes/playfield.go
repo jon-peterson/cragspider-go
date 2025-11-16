@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"github.com/samber/lo"
 )
 
 // SelectedPieceAndPosition represents a selected piece on the board and its position.
@@ -78,25 +77,24 @@ func (p *Playfield) handleInput() {
 	// User click is used to select a piece, unselect a piece, or move a piece depending
 	// on the current state of the board.
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-		selectedPiece := p.SelectedPiece()
-		pieceUnderClick := p.PieceUnderClick(rl.GetMousePosition())
-		if selectedPiece == nil {
+		pieceUnderClick := p.PieceUnderMouse(rl.GetMousePosition())
+		if p.selectedPiece == nil {
 			p.SelectPiece(pieceUnderClick)
 		} else {
 			// User is trying to move selected piece to a new location
-			dest, err := p.PositionUnderClick(rl.GetMousePosition())
+			dest, err := p.PositionUnderMouse(rl.GetMousePosition())
 			if err != nil {
 				// User clicked outside the board, so deselect.
 				p.SelectPiece(pieceUnderClick)
 			} else {
 				// User is trying to move into a new square.
 				move := core.Move{
-					dest[0] - selectedPiece.Position[0],
-					dest[1] - selectedPiece.Position[1],
+					dest[0] - p.selectedPiece.Position[0],
+					dest[1] - p.selectedPiece.Position[1],
 				}
-				err = p.movePiece(selectedPiece, move)
+				err = p.movePiece(p.selectedPiece, move)
 				if err != nil {
-					rl.TraceLog(rl.LogWarning, "failed to move piece %s: %s", selectedPiece.Piece, err)
+					rl.TraceLog(rl.LogWarning, "failed to move piece %s: %s", p.selectedPiece.Piece, err)
 				}
 				p.SelectPiece(nil)
 			}
@@ -169,31 +167,27 @@ func (p *Playfield) SelectPiece(piece *core.Piece) {
 	}
 }
 
-// SelectedPiece returns the currently selected piece and position, or null if there is none.
-func (p *Playfield) SelectedPiece() *SelectedPieceAndPosition {
-	return lo.Ternary(p.selectedPiece != nil, p.selectedPiece, nil)
+// MouseIsOverBoard returns true if and only if the mouse location is somewhere on the playable board.
+func (p *Playfield) MouseIsOverBoard(mouseLoc rl.Vector2) bool {
+	adjClickLoc := rl.Vector2{X: mouseLoc.X - p.boardLoc.X, Y: mouseLoc.Y - p.boardLoc.Y}
+	return adjClickLoc.X >= 0 && adjClickLoc.X < float32(core.SquareSize*p.game.Board.Columns) &&
+		adjClickLoc.Y >= 0 && adjClickLoc.Y < float32(core.SquareSize*p.game.Board.Rows)
 }
 
-// PositionUnderClick returns the board position under a mouse click.
-// If the user clicked outside the board, then an error is returned.
-func (p *Playfield) PositionUnderClick(clickLoc rl.Vector2) (core.Position, error) {
+// PositionUnderMouse returns the board position under a mouse position. If it's outside the board, then an error
+// is returned.
+func (p *Playfield) PositionUnderMouse(mouseLoc rl.Vector2) (core.Position, error) {
 	// Shift the position relative to the board upper corner so the click loc is in board space
-	adjClickLoc := rl.Vector2{X: clickLoc.X - p.boardLoc.X, Y: clickLoc.Y - p.boardLoc.Y}
-
-	// Check if the click is outside the board bounds
-	if adjClickLoc.X < 0 || adjClickLoc.X >= float32(core.SquareSize*p.game.Board.Columns) ||
-		adjClickLoc.Y < 0 || adjClickLoc.Y >= float32(core.SquareSize*p.game.Board.Rows) {
+	adjClickLoc := rl.Vector2{X: mouseLoc.X - p.boardLoc.X, Y: mouseLoc.Y - p.boardLoc.Y}
+	if !p.MouseIsOverBoard(mouseLoc) {
 		return core.Position{}, fmt.Errorf("click is outside the board bounds")
 	}
-
-	// Just scale the click based on the square size
 	return core.Position{int(adjClickLoc.Y / float32(core.SquareSize)), int(adjClickLoc.X / float32(core.SquareSize))}, nil
 }
 
-// PieceUnderClick returns the piece under a mouse click.
-// If there's no piece there, then nil is returned.
-func (p *Playfield) PieceUnderClick(clickLoc rl.Vector2) *core.Piece {
-	pos, err := p.PositionUnderClick(clickLoc)
+// PieceUnderMouse returns the piece under a mouse position. If there's no piece there, then nil is returned.
+func (p *Playfield) PieceUnderMouse(clickLoc rl.Vector2) *core.Piece {
+	pos, err := p.PositionUnderMouse(clickLoc)
 	if err != nil {
 		return nil
 	}
