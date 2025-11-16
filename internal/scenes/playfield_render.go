@@ -4,6 +4,7 @@ package scenes
 
 import (
 	"cragspider-go/internal/core"
+	"cragspider-go/pkg/graphics"
 	"fmt"
 	"image/color"
 
@@ -17,7 +18,7 @@ type positionTintMap map[core.Position]color.RGBA
 // renderBoard draws the board to the screen with the given board location (where the upper left corner is).
 func (p *Playfield) renderBoard() error {
 	// First draw the board itself
-	tints := p.getTintedPositions()
+	tints := p.getTintedPositions(rl.GetMousePosition())
 	for i := range p.game.Board.Rows {
 		for j := range p.game.Board.Columns {
 			pos := core.Position{i, j}
@@ -53,14 +54,30 @@ func (p *Playfield) renderBoard() error {
 }
 
 // getTintedPositions returns a map of positions on the board that should be tinted to their corresponding colors.
-func (p *Playfield) getTintedPositions() positionTintMap {
+// It checks for pieces under the mouse first, then falls back to the selected piece.
+func (p *Playfield) getTintedPositions(mousePos rl.Vector2) positionTintMap {
 	tints := make(positionTintMap)
+	// If mouse is hovering over a piece, tint it and where it can move to
+	pieceUnderMouse := p.PieceUnderMouse(mousePos)
+	if pieceUnderMouse != nil {
+		// If the user has selected a piece, don't tint any of its other pieces
+		if p.selectedPiece == nil || p.selectedPiece.Piece.Color != pieceUnderMouse.Color {
+			pos, err := p.game.Board.PieceLocation(pieceUnderMouse)
+			if err == nil {
+				// Tint the piece under the mouse hover and its valid moves
+				tint := graphics.LightenColor(lo.Ternary(pieceUnderMouse.Color == core.White, rl.Green, rl.Red), 0.75)
+				tints[pos] = tint
+				validMoves := pieceUnderMouse.ValidMoves(pos, p.game.Board)
+				for _, movePos := range validMoves {
+					tints[movePos] = tint
+				}
+			}
+		}
+	}
+	// The selected piece and all its valid moves should be tinted
 	if p.selectedPiece != nil {
-		// The selected piece and all its valid moves should be tinted
 		tint := lo.Ternary(p.selectedPiece.Piece.Color == core.White, rl.Green, rl.Red)
-		// Tint the selected piece's square
 		tints[p.selectedPiece.Position] = tint
-		// Tint all valid move positions
 		selectedPositions := p.selectedPiece.Piece.ValidMoves(p.selectedPiece.Position, p.game.Board)
 		for _, pos := range selectedPositions {
 			tints[pos] = tint
