@@ -4,8 +4,11 @@ This file provides essential context and instructions for Claude when working wi
 
 ## Project Overview
 
-This project is a simple REST API built with Go, using the `gorilla/mux` router for routing and `gorm.io/gorm` for ORM.
-It manages user data with basic CRUD operations.
+This project is a chess-like game based on Martian Chess, or Jetan. It is a two-player game where each player
+controls a set of pieces on a board and take alternate turns. 
+
+The game logic is implemented in the `internal/core` package, and the game is rendered using the `internal/scenes` 
+package. Board and piece configuration is stored in a yaml file called `internal/core/game_config.yml`. 
 
 ## Technologies Used
 
@@ -33,6 +36,7 @@ It manages user data with basic CRUD operations.
 ## Specific Instructions for Claude
 
 * Tell me what you really think; you don't need to be polite.
+* Game-specific logic should be separated from UI considerations.
 * When suggesting code, prioritize idiomatic Go practices.
 * If refactoring, aim for modularity and testability.
 * When adding new features, ensure proper error handling and logging are implemented.
