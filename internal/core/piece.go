@@ -27,6 +27,7 @@ func (p Piece) String() string {
 }
 
 // ValidMoves returns a list of valid positions that the piece can move to from the given starting position.
+// Positions occupied by pieces of the same color are excluded.
 func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 	moves := make([]Position, 0, len(p.Config.Moves))
 
@@ -35,9 +36,16 @@ func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 			start[0] + move[0],
 			start[1] + move[1],
 		}
-		if b.IsValid(pos) {
-			moves = append(moves, pos)
+		if !b.IsValid(pos) {
+			continue
 		}
+
+		// Exclude positions occupied by pieces of the same color
+		if occupant := b.GetPieceAt(pos); occupant != nil && occupant.Color == p.Color {
+			continue
+		}
+
+		moves = append(moves, pos)
 	}
 
 	return moves

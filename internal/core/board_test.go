@@ -191,7 +191,7 @@ func TestBoard_MovePiece(t *testing.T) {
 			setup: func() {
 				// Place a blocker to the right
 				blockerPos := Position{middlePos[0] + 1, middlePos[1]}
-				board.PlacePiece(blockerPiece, blockerPos)
+				require.NoError(t, board.PlacePiece(blockerPiece, blockerPos))
 			},
 			wantErr:    true,
 			wantErrMsg: "cannot move",
