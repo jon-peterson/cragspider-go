@@ -38,6 +38,7 @@ type Board struct {
 	Rows, Columns int
 	squares       [][]Square
 	pieces        [][]*Piece
+	captured      map[Color][]*Piece // Pieces captured by each color
 
 	config *GameConfig
 }
@@ -66,11 +67,12 @@ func newBoard(config *GameConfig) (*Board, error) {
 	columns := config.Board.Columns
 
 	b := &Board{
-		Rows:    rows,
-		Columns: columns,
-		squares: make([][]Square, rows),
-		pieces:  make([][]*Piece, rows),
-		config:  config,
+		Rows:     rows,
+		Columns:  columns,
+		squares:  make([][]Square, rows),
+		pieces:   make([][]*Piece, rows),
+		captured: make(map[Color][]*Piece),
+		config:   config,
 	}
 	b.initializeSquares()
 	err := b.placeStartingPieces()
@@ -178,7 +180,7 @@ func (b *Board) PlacePiece(piece *Piece, pos Position) error {
 }
 
 // MovePiece moves the existing piece from the specified position. An error is returned if it isn't
-// one of the valid moves for the piece.
+// one of the valid moves for the piece. If the destination is occupied by an opponent's piece, that piece is captured.
 func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
 	// Make sure the piece is actually at that starting position.
 	if b.pieces[start[0]][start[1]] != piece {
@@ -193,13 +195,18 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
 	if !lo.Contains(validMoves, end) {
 		return fmt.Errorf("move %v is not valid for piece %s", move, piece)
 	}
-	// Actually put the piece in its new location.
-	err := b.PlacePiece(piece, end)
-	if err != nil {
+
+	// Check if there's an opponent's piece at the destination to capture
+	if occupant := b.GetPieceAt(end); occupant != nil {
+		b.captured[piece.Color] = append(b.captured[piece.Color], occupant)
+		b.clearPieceAt(end)
+	}
+
+	// Put the piece in its new location
+	if err := b.PlacePiece(piece, end); err != nil {
 		return fmt.Errorf("cannot move %s to %s: %w", piece, end, err)
 	}
-	// Clear the original starting position so a piece can move back.
-	b.pieces[start[0]][start[1]] = nil
+	b.clearPieceAt(start)
 	return nil
 }
 
@@ -211,4 +218,14 @@ func (b *Board) GetSquareAt(pos Position) *Square {
 // GetPieceAt returns the piece at the given position, or nil if empty.
 func (b *Board) GetPieceAt(pos Position) *Piece {
 	return b.pieces[pos[0]][pos[1]]
+}
+
+// clearPieceAt removes any piece at the given position.
+func (b *Board) clearPieceAt(pos Position) {
+	b.pieces[pos[0]][pos[1]] = nil
+}
+
+// GetCapturedPieces returns all pieces captured by the specified color.
+func (b *Board) GetCapturedPieces(color Color) []*Piece {
+	return b.captured[color]
 }
