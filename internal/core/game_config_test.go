@@ -23,6 +23,10 @@ func TestLoadConfig(t *testing.T) {
 		assert.Contains(t, warrior.Sprites, White, "warrior should have white sprites")
 		assert.Contains(t, warrior.Sprites, Black, "warrior should have black sprites")
 
+		// Test board dimensions
+		assert.Equal(t, 10, cfg.Board.Rows, "board should have 10 rows")
+		assert.Equal(t, 10, cfg.Board.Columns, "board should have 10 columns")
+
 		// Test board configuration
 		whitePieces, err := cfg.Board.GetStartingPositions(White)
 		require.NoError(t, err)

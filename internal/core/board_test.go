@@ -16,18 +16,18 @@ func TestNewBoard(t *testing.T) {
 	board, err := newBoard(cfg)
 	require.NoError(t, err)
 
-	// Check board dimensions
-	assert.Equal(t, 10, board.Rows, "Board should have 10 rows")
-	assert.Equal(t, 10, board.Columns, "Board should have 10 columns")
+	// Check board dimensions match config
+	assert.Equal(t, cfg.Board.Rows, board.Rows, "Board rows should match config")
+	assert.Equal(t, cfg.Board.Columns, board.Columns, "Board columns should match config")
 
 	// Check slice dimensions
-	require.Len(t, board.squares, 10, "Squares should have 10 rows")
+	require.Len(t, board.squares, cfg.Board.Rows, "Squares should have correct number of rows")
 	for _, row := range board.squares {
-		assert.Len(t, row, 10, "Each cell row should have 10 columns")
+		assert.Len(t, row, cfg.Board.Columns, "Each cell row should have correct number of columns")
 	}
-	require.Len(t, board.pieces, 10, "Pieces should have 10 rows")
+	require.Len(t, board.pieces, cfg.Board.Rows, "Pieces should have correct number of rows")
 	for _, row := range board.pieces {
-		assert.Len(t, row, 10, "Each piece row should have 10 columns")
+		assert.Len(t, row, cfg.Board.Columns, "Each piece row should have correct number of columns")
 	}
 
 	// Check that each cell has a valid rotation vector
@@ -285,10 +285,10 @@ func TestBoard_PlacePiece(t *testing.T) {
 
 	t.Run("cannot place out of bounds", func(t *testing.T) {
 		outOfBoundsPositions := []Position{
-			{-1, 0}, // row too small
-			{10, 0}, // row too large
-			{0, -1}, // col too small
-			{0, 10}, // col too large
+			{-1, 0},            // row too small
+			{board.Rows, 0},    // row too large
+			{0, -1},            // col too small
+			{0, board.Columns}, // col too large
 		}
 
 		for _, pos := range outOfBoundsPositions {

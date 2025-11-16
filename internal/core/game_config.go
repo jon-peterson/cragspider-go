@@ -29,8 +29,10 @@ type BoardPosition struct {
 
 // BoardConfig is how the board looks at the very start of the game.
 type BoardConfig struct {
-	White []BoardPosition `yaml:"white"`
-	Black []BoardPosition `yaml:"black"`
+	Rows    int             `yaml:"rows"`
+	Columns int             `yaml:"columns"`
+	White   []BoardPosition `yaml:"white"`
+	Black   []BoardPosition `yaml:"black"`
 }
 
 // GetStartingPositions returns the starting positions for the specified color.

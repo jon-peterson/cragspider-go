@@ -62,11 +62,14 @@ var CardinalDirections = [4]Move{
 // newBoard creates a new board with the given game configuration.
 // If config is nil, it will use the default configuration.
 func newBoard(config *GameConfig) (*Board, error) {
+	rows := config.Board.Rows
+	columns := config.Board.Columns
+
 	b := &Board{
-		Rows:    10,
-		Columns: 10,
-		squares: make([][]Square, 10),
-		pieces:  make([][]*Piece, 10),
+		Rows:    rows,
+		Columns: columns,
+		squares: make([][]Square, rows),
+		pieces:  make([][]*Piece, rows),
 		config:  config,
 	}
 	b.initializeSquares()

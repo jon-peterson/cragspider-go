@@ -36,6 +36,8 @@ pieces:
       - [ -1, -1 ]
       - [ -2, -2 ]
 board:
+  rows: 10
+  columns: 10
   # Starting board positions
   white:
     - name: "warrior"
