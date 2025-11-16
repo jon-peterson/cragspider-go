@@ -11,23 +11,22 @@ import (
 	"github.com/samber/lo"
 )
 
+// positionTintMap is a map of board positions to their tint colors
+type positionTintMap map[core.Position]color.RGBA
+
 // renderBoard draws the board to the screen with the given board location (where the upper left corner is).
 func (p *Playfield) renderBoard() error {
-	// If there's a selected piece, figure out its valid moves so we can tint the squares
-	var tintedPositions []core.Position
-	var tintColor color.RGBA
-	if p.selectedPiece != nil {
-		tintedPositions = p.selectedPiece.Piece.ValidMoves(p.selectedPiece.Position, p.game.Board)
-		tintedPositions = append(tintedPositions, p.selectedPiece.Position)
-		tintColor = lo.Ternary(p.selectedPiece.Piece.Color == core.White, rl.Green, rl.Red)
-	}
 	// First draw the board itself
+	tints := p.getTintedPositions()
 	for i := range p.game.Board.Rows {
 		for j := range p.game.Board.Columns {
-			// If there's a valid move on this square, or if it's the currently selected piece, tint it
-			tint := lo.Ternary(lo.Contains(tintedPositions, core.Position{i, j}), tintColor, rl.White)
+			pos := core.Position{i, j}
+			tint, exists := tints[pos]
+			if !exists {
+				tint = rl.White
+			}
 			err := p.backgroundSprites.DrawFrame(
-				p.game.Board.GetSquareAt(core.Position{i, j}).Frame,
+				p.game.Board.GetSquareAt(pos).Frame,
 				rl.Vector2{X: p.boardLoc.X + float32(j*core.SquareSize), Y: p.boardLoc.Y + float32(i*core.SquareSize)},
 				core.Scale,
 				p.game.Board.GetSquareAt(core.Position{i, j}).Rotation,
@@ -51,6 +50,23 @@ func (p *Playfield) renderBoard() error {
 	}
 
 	return nil
+}
+
+// getTintedPositions returns a map of positions on the board that should be tinted to their corresponding colors.
+func (p *Playfield) getTintedPositions() positionTintMap {
+	tints := make(positionTintMap)
+	if p.selectedPiece != nil {
+		// The selected piece and all its valid moves should be tinted
+		tint := lo.Ternary(p.selectedPiece.Piece.Color == core.White, rl.Green, rl.Red)
+		// Tint the selected piece's square
+		tints[p.selectedPiece.Position] = tint
+		// Tint all valid move positions
+		selectedPositions := p.selectedPiece.Piece.ValidMoves(p.selectedPiece.Position, p.game.Board)
+		for _, pos := range selectedPositions {
+			tints[pos] = tint
+		}
+	}
+	return tints
 }
 
 // renderPieceOnBoard renders a single piece on the board at the specified position.
