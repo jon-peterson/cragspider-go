@@ -4,7 +4,7 @@ package scenes
 
 import (
 	"cragspider-go/internal/core"
-	"cragspider-go/pkg/animation"
+	"cragspider-go/pkg/graphics"
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -20,9 +20,9 @@ type Playfield struct {
 	game              *core.Game
 	boardLoc          rl.Vector2
 	selectedPiece     *SelectedPieceAndPosition
-	backgroundSprites *animation.SpriteSheet
-	whiteSprites      *animation.SpriteSheet
-	blackSprites      *animation.SpriteSheet
+	backgroundSprites *graphics.SpriteSheet
+	whiteSprites      *graphics.SpriteSheet
+	blackSprites      *graphics.SpriteSheet
 }
 
 var _ Scene = (*Playfield)(nil)
@@ -56,9 +56,9 @@ func (p *Playfield) InitWithConfig(width, height int, cfg *core.GameConfig) {
 	p.boardLoc = rl.Vector2{X: boardX, Y: boardY}
 
 	// Initialize sprite sheets for rendering
-	p.backgroundSprites = animation.Load("dungeon_tiles.png", 4, 9)
-	p.whiteSprites = animation.Load("adventurer_pieces.png", 6, 18)
-	p.blackSprites = animation.Load("monster_pieces.png", 11, 18)
+	p.backgroundSprites = graphics.Load("dungeon_tiles.png", 4, 9)
+	p.whiteSprites = graphics.Load("adventurer_pieces.png", 6, 18)
+	p.blackSprites = graphics.Load("monster_pieces.png", 11, 18)
 }
 
 // Loop is the basic gameplay loop. Returns a scene code to indicate the next scene.

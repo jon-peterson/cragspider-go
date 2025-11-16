@@ -3,7 +3,7 @@
 package core
 
 import (
-	"cragspider-go/pkg/animation"
+	"cragspider-go/pkg/graphics"
 	"cragspider-go/pkg/random"
 	"fmt"
 
@@ -13,7 +13,7 @@ import (
 
 // Square is a physical square on the board.
 type Square struct {
-	Frame    animation.FrameCoords
+	Frame    graphics.FrameCoords
 	Rotation rl.Vector2
 }
 
@@ -90,14 +90,14 @@ func (b *Board) initializeSquares() {
 		b.squares[i] = make([]Square, b.Columns)
 		b.pieces[i] = make([]*Piece, b.Columns)
 		for j := 0; j < b.Columns; j++ {
-			var f animation.FrameCoords
+			var f graphics.FrameCoords
 			if (i+j)%2 == 0 {
-				f = animation.FrameCoords{
+				f = graphics.FrameCoords{
 					random.IntInRange(0, 1),
 					random.IntInRange(0, 2),
 				}
 			} else {
-				f = animation.FrameCoords{
+				f = graphics.FrameCoords{
 					random.IntInRange(0, 1),
 					random.IntInRange(6, 8),
 				}

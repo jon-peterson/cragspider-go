@@ -3,7 +3,7 @@
 package core
 
 import (
-	"cragspider-go/pkg/animation"
+	"cragspider-go/pkg/graphics"
 	_ "embed"
 	"fmt"
 	"sync"
@@ -12,7 +12,7 @@ import (
 )
 
 // SpriteCoords is a location [row,col] in a spritesheet.
-type SpriteCoords []animation.FrameCoords
+type SpriteCoords []graphics.FrameCoords
 
 // PieceConfig represents a type of piece in the game, like bishop or pawn.
 type PieceConfig struct {
