@@ -210,23 +210,25 @@ func TestPlayfield_SelectPiece(t *testing.T) {
 		expectSelected  bool
 		expectedPos     core.Position
 		expectNilSelect bool
+		selectTwice     bool
 	}{
 		{
-			name:           "select first piece",
+			name:           "select first white piece",
 			pieceToSelect:  piece1,
 			expectSelected: true,
 			expectedPos:    core.Position{5, 5},
 		},
 		{
-			name:           "select second piece",
-			pieceToSelect:  piece2,
+			name:           "select another white piece",
+			pieceToSelect:  piece0,
 			expectSelected: true,
-			expectedPos:    core.Position{6, 6},
+			expectedPos:    core.Position{4, 4},
 		},
 		{
 			name:           "select already selected piece unselects it",
 			pieceToSelect:  piece0,
-			expectSelected: false, // First selection will be true, then we'll select again
+			expectSelected: false,
+			selectTwice:    true,
 		},
 		{
 			name:           "select nil (unselect)",
@@ -234,8 +236,8 @@ func TestPlayfield_SelectPiece(t *testing.T) {
 			expectSelected: false,
 		},
 		{
-			name:            "select non-existent piece",
-			pieceToSelect:   &core.Piece{Name: "non-existent", Color: core.White},
+			name:            "cannot select black piece during white turn",
+			pieceToSelect:   piece2,
 			expectSelected:  false,
 			expectNilSelect: true,
 		},
@@ -243,10 +245,15 @@ func TestPlayfield_SelectPiece(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Start tests with piece 0 already selected
-			pf.SelectPiece(piece0)
+			// Reset selected piece for each test
+			pf.selectedPiece = nil
 
-			// Select the new piece
+			// For the toggle test, we need to select the piece first, then select it again
+			if tt.selectTwice {
+				pf.SelectPiece(tt.pieceToSelect)
+			}
+
+			// Select the piece
 			pf.SelectPiece(tt.pieceToSelect)
 
 			if tt.expectNilSelect {

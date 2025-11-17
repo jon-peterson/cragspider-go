@@ -103,9 +103,12 @@ func (p *Playfield) handleInput() {
 }
 
 // movePiece takes the selected piece and tries to make the specified move. This fails if the location isn't
-// a valid one.
+// a valid one. If the move succeeds, the turn is advanced to the next player.
 func (p *Playfield) movePiece(spp *SelectedPieceAndPosition, move core.Move) error {
 	err := p.game.Board.MovePiece(spp.Piece, spp.Position, move)
+	if err == nil {
+		p.game.AdvanceTurn()
+	}
 	return err
 }
 
@@ -127,6 +130,8 @@ func (p *Playfield) render() {
 		rl.TraceLog(rl.LogError, "error rendering captured pieces: %v", err)
 	}
 
+	p.renderStatus()
+
 	rl.EndDrawing()
 }
 
@@ -144,10 +149,15 @@ func (p *Playfield) Close() {
 }
 
 // SelectPiece selects the specified piece, unselecting any previously selected piece.
+// Only allows selecting pieces that belong to the current player.
 func (p *Playfield) SelectPiece(piece *core.Piece) {
 	// If clicking didn't select a piece, unselect any selected piece
 	if piece == nil {
 		p.selectedPiece = nil
+		return
+	}
+	// Prevent selecting pieces that don't belong to the current player
+	if piece.Color != p.game.CurrentPlayer {
 		return
 	}
 	// Selecting a selected piece unselects it (toggle)

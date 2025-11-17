@@ -10,8 +10,9 @@ import (
 
 // Game represents a single instance of a game.
 type Game struct {
-	Board  *Board
-	config *GameConfig
+	Board         *Board
+	config        *GameConfig
+	CurrentPlayer Color
 }
 
 // NewGame returns a new game with the standard configuration.
@@ -34,12 +35,22 @@ func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
 		return nil, fmt.Errorf("failed to create board: %w", err)
 	}
 	return &Game{
-		Board:  b,
-		config: cfg,
+		Board:         b,
+		config:        cfg,
+		CurrentPlayer: White,
 	}, nil
 }
 
 // Over returns true if the game is over.
 func (g *Game) Over() bool {
 	return false
+}
+
+// AdvanceTurn advances the game to the next player's turn.
+func (g *Game) AdvanceTurn() {
+	if g.CurrentPlayer == White {
+		g.CurrentPlayer = Black
+	} else {
+		g.CurrentPlayer = White
+	}
 }
