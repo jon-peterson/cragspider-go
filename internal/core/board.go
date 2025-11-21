@@ -18,6 +18,14 @@ type Square struct {
 }
 
 // Position is a [row,col] on the board.
+// Move represents a [deltaRow, deltaCol] move on the board.
+type Move [2]int
+
+// String returns a nicely formatted string representation of a move.
+func (m Move) String() string {
+	return fmt.Sprintf("[%d,%d]", m[0], m[1])
+}
+
 type Position [2]int
 
 // String returns a nicely formatted string representation of the position.
@@ -25,12 +33,12 @@ func (pos Position) String() string {
 	return fmt.Sprintf("[%d,%d]", pos[0], pos[1])
 }
 
-// Move represents a [deltaRow, deltaCol] move on the board.
-type Move [2]int
-
-// String returns a nicely formatted string representation of a move.
-func (m Move) String() string {
-	return fmt.Sprintf("[%d,%d]", m[0], m[1])
+// Add returns the position after moving from the given position by the given move.
+func (pos Position) Add(move Move) Position {
+	return Position{
+		pos[0] + move[0],
+		pos[1] + move[1],
+	}
 }
 
 // Board is the game board, which is a grid of squares upon which there are pieces.
@@ -188,10 +196,7 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
 	}
 	// Make sure that the move being passed in is valid for this piece from the starting position.
 	validMoves := piece.ValidMoves(start, b)
-	end := Position{
-		start[0] + move[0],
-		start[1] + move[1],
-	}
+	end := start.Add(move)
 	if !lo.Contains(validMoves, end) {
 		return fmt.Errorf("move %v is not valid for piece %s", move, piece)
 	}
