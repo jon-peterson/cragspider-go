@@ -18,7 +18,7 @@ type SpriteCoords []graphics.FrameCoords
 type PieceConfig struct {
 	Name    string                 `yaml:"name"`
 	Sprites map[Color]SpriteCoords `yaml:"sprites"`
-	Moves   []Move                 `yaml:"moves"`
+	Moves   [][]Move               `yaml:"moves"`
 }
 
 // BoardPosition represents a starting position on the board: what piece and where.

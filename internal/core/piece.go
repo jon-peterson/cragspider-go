@@ -27,25 +27,52 @@ func (p Piece) String() string {
 }
 
 // ValidMoves returns a list of valid positions that the piece can move to from the given starting position.
-// Positions occupied by pieces of the same color are excluded.
+// For each path, the piece can move to any position along that path until it encounters a blocking piece:
+// - If a same-color piece blocks, the path ends and that position cannot be moved to
+// - If an opposite-color piece blocks, the piece can capture it but cannot continue past
 func (p *Piece) ValidMoves(start Position, b *Board) []Position {
-	moves := make([]Position, 0, len(p.Config.Moves))
+	moves := make([]Position, 0)
 
-	for _, move := range p.Config.Moves {
-		pos := Position{
-			start[0] + move[0],
-			start[1] + move[1],
-		}
-		if !b.IsValid(pos) {
+	// Process each path independently
+	for _, path := range p.Config.Moves {
+		// Skip empty paths
+		if len(path) == 0 {
 			continue
 		}
 
-		// Exclude positions occupied by pieces of the same color
-		if occupant := b.GetPieceAt(pos); occupant != nil && occupant.Color == p.Color {
-			continue
-		}
+		currentPos := start
 
-		moves = append(moves, pos)
+		// Walk along the path, one delta at a time
+		for _, delta := range path {
+			nextPos := Position{
+				currentPos[0] + delta[0],
+				currentPos[1] + delta[1],
+			}
+
+			// If the next position is off the board, this path ends
+			if !b.IsValid(nextPos) {
+				break
+			}
+
+			// Check what's at the next position
+			occupant := b.GetPieceAt(nextPos)
+
+			// If a same-color piece is there, we cannot move to this position or continue
+			if occupant != nil && occupant.Color == p.Color {
+				break
+			}
+
+			// We can move to this position
+			moves = append(moves, nextPos)
+
+			// If an opposite-color piece is there, we can capture but cannot continue
+			if occupant != nil && occupant.Color != p.Color {
+				break
+			}
+
+			// No piece is blocking, continue along the path
+			currentPos = nextPos
+		}
 	}
 
 	return moves

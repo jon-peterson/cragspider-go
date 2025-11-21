@@ -48,7 +48,7 @@ func TestPlayfield_getTintedPositions(t *testing.T) {
 				Name:  "test",
 				Color: core.White,
 				Config: core.PieceConfig{
-					Moves: []core.Move{{-1, 0}, {1, 0}},
+					Moves: [][]core.Move{{{-1, 0}}, {{1, 0}}},
 				},
 			},
 			selectedPos:   core.Position{3, 3},
@@ -63,7 +63,7 @@ func TestPlayfield_getTintedPositions(t *testing.T) {
 				Name:  "test",
 				Color: core.Black,
 				Config: core.PieceConfig{
-					Moves: []core.Move{{-1, 0}, {1, 0}},
+					Moves: [][]core.Move{{{-1, 0}}, {{1, 0}}},
 				},
 			},
 			selectedPos:   core.Position{3, 3},

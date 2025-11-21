@@ -133,11 +133,11 @@ func TestBoard_MovePiece(t *testing.T) {
 		Color: White,
 		Config: PieceConfig{
 			Name: "test_piece",
-			Moves: []Move{
-				{0, 1},  // up
-				{1, 0},  // right
-				{0, -1}, // down
-				{-1, 0}, // left
+			Moves: [][]Move{
+				{{0, 1}},  // right path
+				{{0, -1}}, // left path
+				{{1, 0}},  // down path
+				{{-1, 0}}, // up path
 			},
 		},
 	}
@@ -317,15 +317,11 @@ func TestBoard_Capture(t *testing.T) {
 		Color: White,
 		Config: PieceConfig{
 			Name: "white_warrior",
-			Moves: []Move{
-				{1, 0},
-				{2, 0},
-				{-1, 0},
-				{-2, 0},
-				{0, 1},
-				{0, 2},
-				{0, -1},
-				{0, -2},
+			Moves: [][]Move{
+				{{1, 0}, {1, 0}},   // down path
+				{{-1, 0}, {-1, 0}}, // up path
+				{{0, 1}, {0, 1}},   // right path
+				{{0, -1}, {0, -1}}, // left path
 			},
 		},
 	}
@@ -343,7 +339,7 @@ func TestBoard_Capture(t *testing.T) {
 		board.captured = make(map[Color][]*Piece)
 
 		// Place white piece at (2, 2) and black piece at (2, 4)
-		whitePiece.Config.Moves = []Move{{0, 2}, {0, 1}, {0, -1}, {0, -2}} // Can move 2 steps
+		whitePiece.Config.Moves = [][]Move{{{0, 1}, {0, 1}}, {{0, -1}, {0, -1}}} // right and left paths with 2 steps each
 		board.pieces[2][2] = whitePiece
 		board.pieces[2][4] = blackPiece
 
@@ -368,8 +364,8 @@ func TestBoard_Capture(t *testing.T) {
 		}
 		board.captured = make(map[Color][]*Piece)
 
-		whitePiece1 := &Piece{Name: "white1", Color: White, Config: PieceConfig{Moves: []Move{{0, 1}, {0, 2}}}}
-		whitePiece2 := &Piece{Name: "white2", Color: White, Config: PieceConfig{Moves: []Move{{0, 1}, {0, 2}}}}
+		whitePiece1 := &Piece{Name: "white1", Color: White, Config: PieceConfig{Moves: [][]Move{{{0, 1}, {0, 1}}}}}
+		whitePiece2 := &Piece{Name: "white2", Color: White, Config: PieceConfig{Moves: [][]Move{{{0, 1}, {0, 1}}}}}
 		blackPiece1 := &Piece{Name: "black1", Color: Black}
 		blackPiece2 := &Piece{Name: "black2", Color: Black}
 
@@ -404,7 +400,7 @@ func TestBoard_Capture(t *testing.T) {
 		}
 		board.captured = make(map[Color][]*Piece)
 
-		whitePiece := &Piece{Name: "white", Color: White, Config: PieceConfig{Moves: []Move{{1, 0}, {0, 1}}}}
+		whitePiece := &Piece{Name: "white", Color: White, Config: PieceConfig{Moves: [][]Move{{{1, 0}}, {{0, 1}}}}}
 		board.pieces[2][2] = whitePiece
 
 		// Move to empty square

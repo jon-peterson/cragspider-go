@@ -1,59 +1,55 @@
+# Copyright 2025 Ideograph LLC. All rights reserved.
+
+# Standard game configuration file. All pairs are [row,col].
+
 pieces:
   - name: "warrior"
     sprites:
       white:
-        - [ 0, 0 ]
-        - [ 1, 0 ]
+        - [ 0,0 ]
+        - [ 1,0 ]
       black:
-        - [ 2, 1 ]
-        - [ 3, 1 ]
-    # Two moves orthogonally
+        - [ 2,1 ]
+        - [ 3,1 ]
+    # Up to two spaces orthogonally
     moves:
-      - [ 1, 0 ]
-      - [ 2, 0 ]
-      - [ 0, 1 ]
-      - [ 0, 2 ]
-      - [ 0, -1 ]
-      - [ 0, -2 ]
-      - [ -1, 0 ]
-      - [ -2, 0 ]
+      - [ [ 1,0 ], [ 1,0 ] ]
+      - [ [ 0,1 ], [ 0,1 ] ]
+      - [ [ 0,-1 ], [ 0,-1 ] ]
+      - [ [ -1,0 ], [ -1,0 ] ]
   - name: "padwar"
     sprites:
       white:
-        - [ 0, 1 ]
-        - [ 1, 1 ]
+        - [ 0,1 ]
+        - [ 1,1 ]
       black:
-        - [ 2, 4 ]
-        - [ 3, 4 ]
+        - [ 2,4 ]
+        - [ 3,4 ]
     moves:
-      # Two squares diagonally (row, col)
-      - [ 1, 1 ]
-      - [ 2, 2 ]
-      - [ -1, 1 ]
-      - [ -2, 2 ]
-      - [ 1, -1 ]
-      - [ 2, -2 ]
-      - [ -1, -1 ]
-      - [ -2, -2 ]
+      # Up to two squares diagonally
+      - [ [ 1,1 ], [ 1,1 ] ]
+      - [ [ -1,1 ],  [ -1,1 ] ]
+      - [ [ 1,-1 ], [ 1,-1 ] ]
+      - [ [ -1,-1 ], [ -1,-1 ] ]
 board:
   rows: 10
   columns: 10
   # Starting board positions
   white:
     - name: "warrior"
-      position: [9, 0]
+      position: [ 9,0 ]
     - name: "padwar"
-      position: [9, 1]
+      position: [ 9,1 ]
     - name: "padwar"
-      position: [9, 8]
+      position: [ 9,8 ]
     - name: "warrior"
-      position: [9, 9]
+      position: [ 9,9 ]
   black:
     - name: "warrior"
-      position: [0, 0]
+      position: [ 0,0 ]
     - name: "padwar"
-      position: [0, 1]
+      position: [ 0,1 ]
     - name: "padwar"
-      position: [0, 8]
+      position: [ 0,8 ]
     - name: "warrior"
-      position: [0, 9]
+      position: [ 0,9 ]
