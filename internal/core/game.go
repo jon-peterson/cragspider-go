@@ -8,11 +8,17 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+// Player represents a player in the game.
+type Player struct {
+	IsHuman bool
+}
+
 // Game represents a single instance of a game.
 type Game struct {
 	Board         *Board
 	config        *GameConfig
 	CurrentPlayer Color
+	players       map[Color]*Player
 }
 
 // NewGame returns a new game with the standard configuration.
@@ -38,6 +44,10 @@ func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
 		Board:         b,
 		config:        cfg,
 		CurrentPlayer: White,
+		players: map[Color]*Player{
+			White: {IsHuman: true},
+			Black: {IsHuman: true},
+		},
 	}, nil
 }
 
@@ -53,4 +63,9 @@ func (g *Game) AdvanceTurn() {
 	} else {
 		g.CurrentPlayer = White
 	}
+}
+
+// GetPlayer returns the player with the given color.
+func (g *Game) GetPlayer(color Color) *Player {
+	return g.players[color]
 }
