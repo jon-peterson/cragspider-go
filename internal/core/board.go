@@ -17,6 +17,21 @@ type Square struct {
 	Rotation rl.Vector2
 }
 
+// SquareGrid holds the immutable grid of squares on a board.
+// This is shared across all copies of a board since squares never change.
+type SquareGrid struct {
+	data [][]Square
+}
+
+// newSquareGrid creates a new SquareGrid with the given dimensions.
+func newSquareGrid(rows, cols int) *SquareGrid {
+	data := make([][]Square, rows)
+	for i := range data {
+		data[i] = make([]Square, cols)
+	}
+	return &SquareGrid{data: data}
+}
+
 // Position is a [row,col] on the board.
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
@@ -44,7 +59,7 @@ func (pos Position) Add(move Move) Position {
 // Board is the game board, which is a grid of squares upon which there are pieces.
 type Board struct {
 	Rows, Columns int
-	squares       [][]Square
+	squares       *SquareGrid
 	pieces        [][]*Piece
 	captured      map[Color][]*Piece // Pieces captured by each color
 
@@ -77,7 +92,7 @@ func newBoard(config *GameConfig) (*Board, error) {
 	b := &Board{
 		Rows:     rows,
 		Columns:  columns,
-		squares:  make([][]Square, rows),
+		squares:  newSquareGrid(rows, columns),
 		pieces:   make([][]*Piece, rows),
 		captured: make(map[Color][]*Piece),
 		config:   config,
@@ -95,7 +110,6 @@ func newBoard(config *GameConfig) (*Board, error) {
 // random frame and orientation. This gives the board variety over plays.
 func (b *Board) initializeSquares() {
 	for i := 0; i < b.Rows; i++ {
-		b.squares[i] = make([]Square, b.Columns)
 		b.pieces[i] = make([]*Piece, b.Columns)
 		for j := 0; j < b.Columns; j++ {
 			var f graphics.FrameCoords
@@ -111,7 +125,7 @@ func (b *Board) initializeSquares() {
 				}
 			}
 			facing := random.Choice(CardinalDirections[:])
-			b.squares[i][j] = Square{
+			b.squares.data[i][j] = Square{
 				Frame:    f,
 				Rotation: rl.Vector2{X: float32(facing[0]), Y: float32(facing[1])},
 			}
@@ -178,17 +192,9 @@ func (b *Board) PieceLocation(piece *Piece) (Position, error) {
 	return Position{}, fmt.Errorf("%s not found on board", piece)
 }
 
-// Copy creates a new Board with the same state as the receiver.
-// The squares are copied, the pieces grid is deep copied, and the captured map is deep copied.
-// The config pointer is shared (not copied).
+// Copy creates a new Board with the same state as the receiver. The pieces and captured maps are
+// deep copied, but just the pointers to the squares and config are copied.
 func (b *Board) Copy() *Board {
-	// Copy the squares grid
-	newSquares := make([][]Square, b.Rows)
-	for i := range b.squares {
-		newSquares[i] = make([]Square, b.Columns)
-		copy(newSquares[i], b.squares[i])
-	}
-
 	// Deep copy the pieces grid
 	newPieces := make([][]*Piece, b.Rows)
 	for i := range b.pieces {
@@ -206,7 +212,7 @@ func (b *Board) Copy() *Board {
 	return &Board{
 		Rows:     b.Rows,
 		Columns:  b.Columns,
-		squares:  newSquares,
+		squares:  b.squares,
 		pieces:   newPieces,
 		captured: newCaptured,
 		config:   b.config,
@@ -263,17 +269,12 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) (*Board, erro
 
 // GetSquareAt returns the square at the given position.
 func (b *Board) GetSquareAt(pos Position) *Square {
-	return &b.squares[pos[0]][pos[1]]
+	return &b.squares.data[pos[0]][pos[1]]
 }
 
 // GetPieceAt returns the piece at the given position, or nil if empty.
 func (b *Board) GetPieceAt(pos Position) *Piece {
 	return b.pieces[pos[0]][pos[1]]
-}
-
-// clearPieceAt removes any piece at the given position.
-func (b *Board) clearPieceAt(pos Position) {
-	b.pieces[pos[0]][pos[1]] = nil
 }
 
 // GetCapturedPieces returns all pieces captured by the specified color.

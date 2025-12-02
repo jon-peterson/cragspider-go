@@ -11,12 +11,16 @@ import (
 
 // createTestBoard creates a test board with the specified dimensions
 func createTestBoard(rows, cols int) *Board {
-	return &Board{
+	board := &Board{
 		Rows:    rows,
 		Columns: cols,
-		squares: make([][]Square, rows),
+		squares: newSquareGrid(rows, cols),
 		pieces:  make([][]*Piece, rows),
 	}
+	for i := range board.pieces {
+		board.pieces[i] = make([]*Piece, cols)
+	}
+	return board
 }
 
 func TestPiece_validMoves(t *testing.T) {

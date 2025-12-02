@@ -21,8 +21,8 @@ func TestNewBoard(t *testing.T) {
 	assert.Equal(t, cfg.Board.Columns, board.Columns, "Board columns should match config")
 
 	// Check slice dimensions
-	require.Len(t, board.squares, cfg.Board.Rows, "Squares should have correct number of rows")
-	for _, row := range board.squares {
+	require.Len(t, board.squares.data, cfg.Board.Rows, "Squares should have correct number of rows")
+	for _, row := range board.squares.data {
 		assert.Len(t, row, cfg.Board.Columns, "Each cell row should have correct number of columns")
 	}
 	require.Len(t, board.pieces, cfg.Board.Rows, "Pieces should have correct number of rows")
@@ -31,7 +31,7 @@ func TestNewBoard(t *testing.T) {
 	}
 
 	// Check that each cell has a valid rotation vector
-	for i, row := range board.squares {
+	for i, row := range board.squares.data {
 		for j, cell := range row {
 			// Check that rotation is one of the cardinal directions
 			dir := Move{int(cell.Rotation.X), int(cell.Rotation.Y)}
