@@ -15,7 +15,7 @@ func TestNewGame(t *testing.T) {
 
 	// Check that the game was created with the correct initial state
 	assert.NotNil(t, game.Board, "Board should be initialized")
-	assert.Equal(t, White, game.CurrentPlayer, "White should be the current player")
+	assert.Equal(t, White, game.ActiveColor, "White should be the current player")
 	assert.NotNil(t, game.players, "Players map should be initialized")
 }
 
@@ -40,11 +40,11 @@ func TestAdvanceTurn(t *testing.T) {
 	game, err := NewGame()
 	require.NoError(t, err)
 
-	assert.Equal(t, White, game.CurrentPlayer, "White should be the first player")
+	assert.Equal(t, White, game.ActiveColor, "White should be the first player")
 
 	game.AdvanceTurn()
-	assert.Equal(t, Black, game.CurrentPlayer, "Black should be the current player after advancing")
+	assert.Equal(t, Black, game.ActiveColor, "Black should be the current player after advancing")
 
 	game.AdvanceTurn()
-	assert.Equal(t, White, game.CurrentPlayer, "White should be the current player after advancing twice")
+	assert.Equal(t, White, game.ActiveColor, "White should be the current player after advancing twice")
 }

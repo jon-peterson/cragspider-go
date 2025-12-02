@@ -15,10 +15,10 @@ type Player struct {
 
 // Game represents a single instance of a game.
 type Game struct {
-	Board         *Board
-	config        *GameConfig
-	CurrentPlayer Color
-	players       map[Color]*Player
+	Board       *Board
+	config      *GameConfig
+	ActiveColor Color
+	players     map[Color]*Player
 }
 
 // NewGame returns a new game with the standard configuration.
@@ -41,9 +41,9 @@ func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
 		return nil, fmt.Errorf("failed to create board: %w", err)
 	}
 	return &Game{
-		Board:         b,
-		config:        cfg,
-		CurrentPlayer: White,
+		Board:       b,
+		config:      cfg,
+		ActiveColor: White,
 		players: map[Color]*Player{
 			White: {IsHuman: true},
 			Black: {IsHuman: true},
@@ -58,10 +58,10 @@ func (g *Game) Over() bool {
 
 // AdvanceTurn advances the game to the next player's turn.
 func (g *Game) AdvanceTurn() {
-	if g.CurrentPlayer == White {
-		g.CurrentPlayer = Black
+	if g.ActiveColor == White {
+		g.ActiveColor = Black
 	} else {
-		g.CurrentPlayer = White
+		g.ActiveColor = White
 	}
 }
 

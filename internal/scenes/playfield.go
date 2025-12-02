@@ -158,7 +158,7 @@ func (p *Playfield) SelectPiece(piece *core.Piece) {
 		return
 	}
 	// Prevent selecting pieces that don't belong to the current player
-	if piece.Color != p.game.CurrentPlayer {
+	if piece.Color != p.game.ActiveColor {
 		return
 	}
 	// Selecting a selected piece unselects it (toggle)

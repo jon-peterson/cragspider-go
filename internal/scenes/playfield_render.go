@@ -149,8 +149,8 @@ func (p *Playfield) renderPieceAtLocationWithFrame(piece *core.Piece, location r
 
 // renderStatus renders all status needs of the playfield, like whose turn it is.
 func (p *Playfield) renderStatus() {
-	turnText := lo.Ternary(p.game.CurrentPlayer == core.White, "White's Turn", "Black's Turn")
-	turnColor := lo.Ternary(p.game.CurrentPlayer == core.White, rl.Black, rl.DarkGray)
+	turnText := lo.Ternary(p.game.ActiveColor == core.White, "White's Turn", "Black's Turn")
+	turnColor := lo.Ternary(p.game.ActiveColor == core.White, rl.Black, rl.DarkGray)
 	fontSize := int32(24)
 	x := int32(20)
 	y := int32(20)
