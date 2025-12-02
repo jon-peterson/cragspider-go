@@ -32,7 +32,6 @@ func newSquareGrid(rows, cols int) *SquareGrid {
 	return &SquareGrid{data: data}
 }
 
-// Position is a [row,col] on the board.
 // Move represents a [deltaRow, deltaCol] move on the board.
 type Move [2]int
 
