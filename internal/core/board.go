@@ -280,3 +280,17 @@ func (b *Board) GetPieceAt(pos Position) *Piece {
 func (b *Board) GetCapturedPieces(color Color) []*Piece {
 	return b.captured[color]
 }
+
+// GetPiecesByColor returns all pieces of the specified color on the board.
+// Returns an empty slice if no pieces of that color are found.
+func (b *Board) GetPiecesByColor(color Color) []*Piece {
+	var pieces []*Piece
+	for row := 0; row < b.Rows; row++ {
+		for col := 0; col < b.Columns; col++ {
+			if piece := b.pieces[row][col]; piece != nil && piece.Color == color {
+				pieces = append(pieces, piece)
+			}
+		}
+	}
+	return pieces
+}
