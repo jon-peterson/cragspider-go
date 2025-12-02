@@ -192,7 +192,9 @@ func TestBoard_MovePiece(t *testing.T) {
 			setup: func() {
 				// Place a blocker (same color) to the right
 				blockerPos := Position{middlePos[0] + 1, middlePos[1]}
-				require.NoError(t, board.PlacePiece(blockerPiece, blockerPos))
+				newBoard, err := board.PlacePiece(blockerPiece, blockerPos)
+				require.NoError(t, err)
+				board = newBoard
 			},
 			wantErr:    true,
 			wantErrMsg: "is not valid",
@@ -225,8 +227,9 @@ func TestBoard_MovePiece(t *testing.T) {
 				board.pieces[i] = make([]*Piece, 5)
 			}
 			// Put the piece in the right place
-			err := board.PlacePiece(mainPiece, tt.startPos)
+			newBoard, err := board.PlacePiece(mainPiece, tt.startPos)
 			require.NoError(t, err, "Failed to place piece")
+			board = newBoard
 
 			// Run any test-specific setup
 			if tt.setup != nil {
@@ -234,7 +237,7 @@ func TestBoard_MovePiece(t *testing.T) {
 			}
 
 			// Execute the move
-			err = board.MovePiece(tt.piece, tt.startPos, tt.move)
+			resultBoard, err := board.MovePiece(tt.piece, tt.startPos, tt.move)
 
 			// Verify results
 			if tt.wantErr {
@@ -245,7 +248,7 @@ func TestBoard_MovePiece(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				if tt.verify != nil {
-					tt.verify(t, board)
+					tt.verify(t, resultBoard)
 				}
 			}
 		})
@@ -266,21 +269,21 @@ func TestBoard_PlacePiece(t *testing.T) {
 
 	t.Run("place piece in empty position", func(t *testing.T) {
 		pos := Position{1, 1}
-		err := board.PlacePiece(piece, pos)
+		newBoard, err := board.PlacePiece(piece, pos)
 		require.NoError(t, err, "Should be able to place piece in empty position")
-		assert.NotNil(t, board.pieces[pos[0]][pos[1]], "Piece should be placed on the board")
-		assert.Equal(t, piece.Name, board.pieces[pos[0]][pos[1]].Name, "Placed piece should have the correct name")
-		assert.Equal(t, piece.Color, board.pieces[pos[0]][pos[1]].Color, "Placed piece should have the correct color")
+		assert.NotNil(t, newBoard.pieces[pos[0]][pos[1]], "Piece should be placed on the board")
+		assert.Equal(t, piece.Name, newBoard.pieces[pos[0]][pos[1]].Name, "Placed piece should have the correct name")
+		assert.Equal(t, piece.Color, newBoard.pieces[pos[0]][pos[1]].Color, "Placed piece should have the correct color")
 	})
 
 	t.Run("cannot place in occupied position", func(t *testing.T) {
 		pos := Position{2, 2}
 		// First placement should succeed
-		err := board.PlacePiece(piece, pos)
+		newBoard, err := board.PlacePiece(piece, pos)
 		require.NoError(t, err, "First placement should succeed")
 
 		// Second placement should fail
-		err = board.PlacePiece(piece, pos)
+		_, err = newBoard.PlacePiece(piece, pos)
 		assert.Error(t, err, "Should not be able to place piece in occupied position")
 	})
 
@@ -293,7 +296,7 @@ func TestBoard_PlacePiece(t *testing.T) {
 		}
 
 		for _, pos := range outOfBoundsPositions {
-			err := board.PlacePiece(piece, pos)
+			_, err := board.PlacePiece(piece, pos)
 			assert.Error(t, err, "Should not be able to place piece at position %v", pos)
 		}
 	})
@@ -344,15 +347,15 @@ func TestBoard_Capture(t *testing.T) {
 		board.pieces[2][4] = blackPiece
 
 		// Move white piece to capture black piece
-		err := board.MovePiece(whitePiece, Position{2, 2}, Move{0, 2})
+		resultBoard, err := board.MovePiece(whitePiece, Position{2, 2}, Move{0, 2})
 		require.NoError(t, err, "Should be able to move and capture")
 
 		// Verify white piece moved
-		assert.Equal(t, whitePiece, board.pieces[2][4], "White piece should be at capture position")
-		assert.Nil(t, board.pieces[2][2], "Original position should be empty")
+		assert.Equal(t, whitePiece, resultBoard.pieces[2][4], "White piece should be at capture position")
+		assert.Nil(t, resultBoard.pieces[2][2], "Original position should be empty")
 
 		// Verify black piece was captured
-		capturedByWhite := board.GetCapturedPieces(White)
+		capturedByWhite := resultBoard.GetCapturedPieces(White)
 		assert.Len(t, capturedByWhite, 1, "White should have captured 1 piece")
 		assert.Equal(t, blackPiece, capturedByWhite[0], "Captured piece should be the black piece")
 	})
@@ -376,11 +379,13 @@ func TestBoard_Capture(t *testing.T) {
 		board.pieces[1][1] = blackPiece2
 
 		// White captures black pieces
-		err := board.MovePiece(whitePiece1, Position{0, 0}, Move{0, 1})
+		resultBoard, err := board.MovePiece(whitePiece1, Position{0, 0}, Move{0, 1})
 		require.NoError(t, err)
+		board = resultBoard
 
-		err = board.MovePiece(whitePiece2, Position{1, 0}, Move{0, 1})
+		resultBoard, err = board.MovePiece(whitePiece2, Position{1, 0}, Move{0, 1})
 		require.NoError(t, err)
+		board = resultBoard
 
 		// Verify white has 2 captured pieces
 		capturedByWhite := board.GetCapturedPieces(White)
@@ -404,11 +409,11 @@ func TestBoard_Capture(t *testing.T) {
 		board.pieces[2][2] = whitePiece
 
 		// Move to empty square
-		err := board.MovePiece(whitePiece, Position{2, 2}, Move{1, 0})
+		resultBoard, err := board.MovePiece(whitePiece, Position{2, 2}, Move{1, 0})
 		require.NoError(t, err)
 
 		// Verify no captures
-		assert.Len(t, board.GetCapturedPieces(White), 0, "No pieces should be captured")
-		assert.Equal(t, whitePiece, board.pieces[3][2], "Piece should be at new position")
+		assert.Len(t, resultBoard.GetCapturedPieces(White), 0, "No pieces should be captured")
+		assert.Equal(t, whitePiece, resultBoard.pieces[3][2], "Piece should be at new position")
 	})
 }

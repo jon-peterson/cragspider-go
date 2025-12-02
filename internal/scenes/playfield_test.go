@@ -200,9 +200,15 @@ func TestPlayfield_SelectPiece(t *testing.T) {
 	piece0 := &core.Piece{Name: "piece0", Color: core.White, Config: core.PieceConfig{}}
 	piece1 := &core.Piece{Name: "piece1", Color: core.White, Config: core.PieceConfig{}}
 	piece2 := &core.Piece{Name: "piece2", Color: core.Black, Config: core.PieceConfig{}}
-	require.NoError(t, game.Board.PlacePiece(piece0, core.Position{4, 4}))
-	require.NoError(t, game.Board.PlacePiece(piece1, core.Position{5, 5}))
-	require.NoError(t, game.Board.PlacePiece(piece2, core.Position{6, 6}))
+	newBoard, err := game.Board.PlacePiece(piece0, core.Position{4, 4})
+	require.NoError(t, err)
+	game.Board = newBoard
+	newBoard, err = game.Board.PlacePiece(piece1, core.Position{5, 5})
+	require.NoError(t, err)
+	game.Board = newBoard
+	newBoard, err = game.Board.PlacePiece(piece2, core.Position{6, 6})
+	require.NoError(t, err)
+	game.Board = newBoard
 
 	tests := []struct {
 		name            string

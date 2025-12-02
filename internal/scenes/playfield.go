@@ -105,8 +105,9 @@ func (p *Playfield) handleInput() {
 // movePiece takes the selected piece and tries to make the specified move. This fails if the location isn't
 // a valid one. If the move succeeds, the turn is advanced to the next player.
 func (p *Playfield) movePiece(spp *SelectedPieceAndPosition, move core.Move) error {
-	err := p.game.Board.MovePiece(spp.Piece, spp.Position, move)
+	newBoard, err := p.game.Board.MovePiece(spp.Piece, spp.Position, move)
 	if err == nil {
+		p.game.Board = newBoard
 		p.game.AdvanceTurn()
 	}
 	return err

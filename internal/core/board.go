@@ -121,13 +121,14 @@ func (b *Board) initializeSquares() {
 
 // placeStartingPieces places all pieces in their starting positions according to the game config.
 func (b *Board) placeStartingPieces() error {
+	currentBoard := b
 	for _, color := range []Color{White, Black} {
-		positions, err := b.config.Board.GetStartingPositions(color)
+		positions, err := currentBoard.config.Board.GetStartingPositions(color)
 		if err != nil {
 			return fmt.Errorf("failed to get starting positions for %s: %w", color, err)
 		}
 		for _, pos := range positions {
-			pieceConfig, err := b.config.GetPieceConfig(pos.Name)
+			pieceConfig, err := currentBoard.config.GetPieceConfig(pos.Name)
 			if err != nil {
 				return fmt.Errorf("failed to get config for piece %s: %w", pos.Name, err)
 			}
@@ -138,11 +139,16 @@ func (b *Board) placeStartingPieces() error {
 				Config: *pieceConfig,
 			}
 
-			if err := b.PlacePiece(piece, pos.Position); err != nil {
+			newBoard, err := currentBoard.PlacePiece(piece, pos.Position)
+			if err != nil {
 				return fmt.Errorf("failed to place %s %s at %v: %w", color, pos.Name, pos.Position, err)
 			}
+			currentBoard = newBoard
 		}
 	}
+	// Copy the accumulated state back to the original board
+	b.pieces = currentBoard.pieces
+	b.captured = currentBoard.captured
 	return nil
 }
 
@@ -172,47 +178,87 @@ func (b *Board) PieceLocation(piece *Piece) (Position, error) {
 	return Position{}, fmt.Errorf("%s not found on board", piece)
 }
 
-// PlacePiece puts the specified piece in the specified location, returning an error if the position is occupied.
-func (b *Board) PlacePiece(piece *Piece, pos Position) error {
-	if piece == nil {
-		return fmt.Errorf("piece is nil")
+// Copy creates a new Board with the same state as the receiver.
+// The squares are copied, the pieces grid is deep copied, and the captured map is deep copied.
+// The config pointer is shared (not copied).
+func (b *Board) Copy() *Board {
+	// Copy the squares grid
+	newSquares := make([][]Square, b.Rows)
+	for i := range b.squares {
+		newSquares[i] = make([]Square, b.Columns)
+		copy(newSquares[i], b.squares[i])
 	}
-	if !b.IsValid(pos) {
-		return fmt.Errorf("%s is out of bounds", pos)
+
+	// Deep copy the pieces grid
+	newPieces := make([][]*Piece, b.Rows)
+	for i := range b.pieces {
+		newPieces[i] = make([]*Piece, b.Columns)
+		copy(newPieces[i], b.pieces[i])
 	}
-	if b.IsOccupied(pos) {
-		return fmt.Errorf("%s is occupied", pos)
+
+	// Deep copy the captured map
+	newCaptured := make(map[Color][]*Piece)
+	for color, pieces := range b.captured {
+		newCaptured[color] = make([]*Piece, len(pieces))
+		copy(newCaptured[color], pieces)
 	}
-	b.pieces[pos[0]][pos[1]] = piece
-	return nil
+
+	return &Board{
+		Rows:     b.Rows,
+		Columns:  b.Columns,
+		squares:  newSquares,
+		pieces:   newPieces,
+		captured: newCaptured,
+		config:   b.config,
+	}
 }
 
-// MovePiece moves the existing piece from the specified position. An error is returned if it isn't
-// one of the valid moves for the piece. If the destination is occupied by an opponent's piece, that piece is captured.
-func (b *Board) MovePiece(piece *Piece, start Position, move Move) error {
+// PlacePiece puts the specified piece in the specified location, returning a new board with the change applied.
+// Returns an error if the position is occupied or out of bounds.
+func (b *Board) PlacePiece(piece *Piece, pos Position) (*Board, error) {
+	if piece == nil {
+		return nil, fmt.Errorf("piece is nil")
+	}
+	if !b.IsValid(pos) {
+		return nil, fmt.Errorf("%s is out of bounds", pos)
+	}
+	if b.IsOccupied(pos) {
+		return nil, fmt.Errorf("%s is occupied", pos)
+	}
+	newBoard := b.Copy()
+	newBoard.pieces[pos[0]][pos[1]] = piece
+	return newBoard, nil
+}
+
+// MovePiece moves the existing piece from the specified position, returning a new board with the move applied.
+// An error is returned if the move isn't valid for the piece. If the destination is occupied by an opponent's piece,
+// that piece is captured in the returned board.
+func (b *Board) MovePiece(piece *Piece, start Position, move Move) (*Board, error) {
 	// Make sure the piece is actually at that starting position.
 	if b.pieces[start[0]][start[1]] != piece {
-		return fmt.Errorf("%s is not at %s", piece, start)
+		return nil, fmt.Errorf("%s is not at %s", piece, start)
 	}
 	// Make sure that the move being passed in is valid for this piece from the starting position.
 	validMoves := piece.ValidMoves(start, b)
 	end := start.Add(move)
 	if !lo.Contains(validMoves, end) {
-		return fmt.Errorf("move %v is not valid for piece %s", move, piece)
+		return nil, fmt.Errorf("move %v is not valid for piece %s", move, piece)
 	}
+
+	// Copy the board to make modifications
+	newBoard := b.Copy()
 
 	// Check if there's an opponent's piece at the destination to capture
-	if occupant := b.GetPieceAt(end); occupant != nil {
-		b.captured[piece.Color] = append(b.captured[piece.Color], occupant)
-		b.clearPieceAt(end)
+	if occupant := newBoard.GetPieceAt(end); occupant != nil {
+		newBoard.captured[piece.Color] = append(newBoard.captured[piece.Color], occupant)
+		newBoard.pieces[end[0]][end[1]] = nil
 	}
 
-	// Put the piece in its new location
-	if err := b.PlacePiece(piece, end); err != nil {
-		return fmt.Errorf("cannot move %s to %s: %w", piece, end, err)
-	}
-	b.clearPieceAt(start)
-	return nil
+	// Put the piece in its new location and clear the old one
+	newBoard.pieces[end[0]][end[1]] = piece
+	newBoard.pieces[start[0]][start[1]] = nil
+
+	return newBoard, nil
 }
 
 // GetSquareAt returns the square at the given position.
