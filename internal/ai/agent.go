@@ -2,10 +2,10 @@ package ai
 
 import "cragspider-go/internal/core"
 
-// Action represents a complete move action, containing both the piece and the move delta.
+// Action represents a complete move action, containing the piece and its destination position.
 type Action struct {
-	Piece *core.Piece
-	Move  core.Move
+	Piece       *core.Piece
+	Destination core.Position
 }
 
 // Agent is an interface for bot implementations that generate moves.

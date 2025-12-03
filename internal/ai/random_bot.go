@@ -2,6 +2,7 @@ package ai
 
 import (
 	"cragspider-go/internal/core"
+	"cragspider-go/pkg/random"
 	"fmt"
 	"math/rand"
 )
@@ -26,7 +27,7 @@ func (rb *RandomBot) NextMove(board *core.Board) (*Action, error) {
 		botPieces[i], botPieces[j] = botPieces[j], botPieces[i]
 	})
 
-	// For each piece, try to find a valid move
+	// As soon as there's a piece with at least one valid move, return one of them randomly
 	for _, piece := range botPieces {
 		pos, err := board.PieceLocation(piece)
 		if err != nil {
@@ -38,23 +39,12 @@ func (rb *RandomBot) NextMove(board *core.Board) (*Action, error) {
 			continue
 		}
 
-		// Randomly select one of the valid positions
-		selectedPos := validPositions[rand.Intn(len(validPositions))]
-		move := calculateDelta(pos, selectedPos)
-
+		selectedPos := random.Choice(validPositions)
 		return &Action{
-			Piece: piece,
-			Move:  move,
+			Piece:       piece,
+			Destination: selectedPos,
 		}, nil
 	}
 
 	return nil, fmt.Errorf("no valid moves available for color %s", rb.Color)
-}
-
-// calculateDelta computes the move delta from a starting position to an ending position.
-func calculateDelta(from, to core.Position) core.Move {
-	return core.Move{
-		to[0] - from[0],
-		to[1] - from[1],
-	}
 }

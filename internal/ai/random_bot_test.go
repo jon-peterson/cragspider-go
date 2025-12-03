@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"cragspider-go/internal/core"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,16 +26,12 @@ func TestRandomBotNextMove_ReturnsValidMove(t *testing.T) {
 	assert.NotNil(t, action.Piece, "action should have a piece")
 	assert.Equal(t, core.White, action.Piece.Color, "piece should be white")
 
-	// Verify the move is valid by checking that it's in the valid moves
+	// Verify the move is valid by checking that the destination is in the valid moves
 	startPos, err := game.Board.PieceLocation(action.Piece)
 	require.NoError(t, err, "should find piece location")
 
 	validPositions := action.Piece.ValidMoves(startPos, game.Board)
-	endPos := core.Position{
-		startPos[0] + action.Move[0],
-		startPos[1] + action.Move[1],
-	}
-	assert.Contains(t, validPositions, endPos, "move should be in valid positions for the piece")
+	assert.Contains(t, validPositions, action.Destination, "destination should be in valid positions for the piece")
 }
 
 func TestRandomBotNextMove_DifferentColorPieces(t *testing.T) {
@@ -64,7 +61,7 @@ func TestRandomBotMultipleCalls(t *testing.T) {
 		assert.NotNil(t, action)
 
 		// Create a unique key for this move
-		moveKey := fmt.Sprintf("%s (%d,%d)", action.Piece.Name, action.Move[0], action.Move[1])
+		moveKey := fmt.Sprintf("%s -> %s", action.Piece.Name, action.Destination.String())
 		moves[moveKey] = true
 	}
 
