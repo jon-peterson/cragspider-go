@@ -8,11 +8,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// Player represents a player in the game.
-type Player struct {
-	IsHuman bool
-}
-
 // Game represents a single instance of a game.
 type Game struct {
 	Board       *Board
@@ -45,8 +40,8 @@ func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
 		config:      cfg,
 		ActiveColor: White,
 		players: map[Color]*Player{
-			White: {IsHuman: true},
-			Black: {IsHuman: true},
+			White: newHumanPlayer(),
+			Black: newHumanPlayer(),
 		},
 	}, nil
 }

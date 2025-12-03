@@ -14,7 +14,7 @@ type RandomBot struct {
 
 // NextMove returns a random valid move for a random piece of the bot's color.
 // Returns nil and an error if no valid moves are available for any piece.
-func (rb *RandomBot) NextMove(board *core.Board) (*Action, error) {
+func (rb *RandomBot) NextMove(board *core.Board) (*core.Action, error) {
 	// Get all pieces of the bot's color
 	botPieces := board.GetPiecesByColor(rb.Color)
 
@@ -40,7 +40,7 @@ func (rb *RandomBot) NextMove(board *core.Board) (*Action, error) {
 		}
 
 		selectedPos := random.Choice(validPositions)
-		return &Action{
+		return &core.Action{
 			Piece:       piece,
 			Destination: selectedPos,
 		}, nil

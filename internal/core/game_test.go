@@ -26,13 +26,13 @@ func TestGamePlayers(t *testing.T) {
 	t.Run("white player is human", func(t *testing.T) {
 		whitePlayer := game.GetPlayer(White)
 		require.NotNil(t, whitePlayer, "White player should exist")
-		assert.True(t, whitePlayer.IsHuman, "White player should be human")
+		assert.True(t, whitePlayer.IsHuman(), "White player should be human")
 	})
 
 	t.Run("black player is human", func(t *testing.T) {
 		blackPlayer := game.GetPlayer(Black)
 		require.NotNil(t, blackPlayer, "Black player should exist")
-		assert.True(t, blackPlayer.IsHuman, "Black player should be human")
+		assert.True(t, blackPlayer.IsHuman(), "Black player should be human")
 	})
 }
 
