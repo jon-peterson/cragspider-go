@@ -3,6 +3,7 @@
 package scenes
 
 import (
+	"cragspider-go/internal/ai"
 	"cragspider-go/internal/core"
 	"cragspider-go/pkg/graphics"
 	"fmt"
@@ -45,6 +46,9 @@ func (p *Playfield) InitWithConfig(width, height int, cfg *core.GameConfig) {
 		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
 	}
 	p.game = g
+
+	// Set Black player as AI controlled
+	p.game.SetPlayer(core.Black, core.NewAIPlayer("Random AI", ai.NewRandomBot(core.Black)))
 
 	// Calculate board dimensions
 	boardWidth := p.game.Board.Columns * core.SquareSize
@@ -114,8 +118,48 @@ func (p *Playfield) movePiece(spp *SelectedPieceAndPosition, move core.Move) err
 }
 
 // update updates the game state since the last time through the gameplay loop.
+// If the current player is AI controlled, executes their move automatically.
 func (p *Playfield) update() {
+	currentPlayer := p.game.GetPlayer(p.game.ActiveColor)
+	if !currentPlayer.IsAI() {
+		return
+	}
 
+	// Get the AI's next move
+	action, err := currentPlayer.Strategy.NextMove(p.game.Board)
+	if err != nil {
+		rl.TraceLog(rl.LogWarning, "AI player failed to generate move: %v", err)
+		// Skip turn if AI has no valid moves
+		p.game.AdvanceTurn()
+		return
+	}
+
+	// Find the current position of the piece
+	currentPos, err := p.game.Board.PieceLocation(action.Piece)
+	if err != nil {
+		rl.TraceLog(rl.LogWarning, "failed to find AI piece location: %v", err)
+		p.game.AdvanceTurn()
+		return
+	}
+
+	// Convert Action to Move
+	move, err := p.game.ActionToMove(action)
+	if err != nil {
+		rl.TraceLog(rl.LogWarning, "failed to convert AI action to move: %v", err)
+		p.game.AdvanceTurn()
+		return
+	}
+
+	// Apply the move to the board
+	newBoard, err := p.game.Board.MovePiece(action.Piece, currentPos, move)
+	if err != nil {
+		rl.TraceLog(rl.LogWarning, "failed to apply AI move: %v", err)
+		p.game.AdvanceTurn()
+		return
+	}
+
+	p.game.Board = newBoard
+	p.game.AdvanceTurn()
 }
 
 // render draws the current game state to the screen.

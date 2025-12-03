@@ -64,3 +64,21 @@ func (g *Game) AdvanceTurn() {
 func (g *Game) GetPlayer(color Color) *Player {
 	return g.players[color]
 }
+
+// SetPlayer sets the player for the given color.
+func (g *Game) SetPlayer(color Color, player *Player) {
+	g.players[color] = player
+}
+
+// ActionToMove converts an Action (with absolute destination Position) to a Move (with delta).
+// This is needed because agents return absolute positions, but Board.MovePiece expects moves with deltas.
+func (g *Game) ActionToMove(action *Action) (Move, error) {
+	currentPos, err := g.Board.PieceLocation(action.Piece)
+	if err != nil {
+		return Move{}, fmt.Errorf("cannot find piece location: %w", err)
+	}
+	return Move{
+		action.Destination[0] - currentPos[0],
+		action.Destination[1] - currentPos[1],
+	}, nil
+}
