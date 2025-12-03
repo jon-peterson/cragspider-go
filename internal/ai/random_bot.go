@@ -12,6 +12,11 @@ type RandomBot struct {
 	Color core.Color
 }
 
+// NewRandomBot returns a new RandomBot structure for the specified color.
+func NewRandomBot(color core.Color) *RandomBot {
+	return &RandomBot{Color: color}
+}
+
 // NextMove returns a random valid move for a random piece of the bot's color.
 // Returns nil and an error if no valid moves are available for any piece.
 func (rb *RandomBot) NextMove(board *core.Board) (*core.Action, error) {
