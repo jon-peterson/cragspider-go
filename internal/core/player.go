@@ -8,8 +8,8 @@ type Player struct {
 	Strategy AgentStrategy
 }
 
-// newHumanPlayer returns a new player set up as a Human.
-func newHumanPlayer() *Player {
+// NewHumanPlayer returns a new player set up as a Human.
+func NewHumanPlayer() *Player {
 	return &Player{Name: "Human"}
 }
 

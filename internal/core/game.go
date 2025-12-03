@@ -28,6 +28,11 @@ func NewGame() (*Game, error) {
 // NewGameWithConfig returns a new game with a board ready to be played. It accepts a GameConfig parameter to allow
 // custom configurations.
 func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
+	return NewGameWithConfigAndPlayers(cfg, NewHumanPlayer(), NewHumanPlayer())
+}
+
+// NewGameWithConfigAndPlayers returns a new game with a board and the specified players.
+func NewGameWithConfigAndPlayers(cfg *GameConfig, whitePlayer, blackPlayer *Player) (*Game, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("game configuration cannot be nil")
 	}
@@ -40,8 +45,8 @@ func NewGameWithConfig(cfg *GameConfig) (*Game, error) {
 		config:      cfg,
 		ActiveColor: White,
 		players: map[Color]*Player{
-			White: newHumanPlayer(),
-			Black: newHumanPlayer(),
+			White: whitePlayer,
+			Black: blackPlayer,
 		},
 	}, nil
 }
@@ -63,11 +68,6 @@ func (g *Game) AdvanceTurn() {
 // GetPlayer returns the player with the given color.
 func (g *Game) GetPlayer(color Color) *Player {
 	return g.players[color]
-}
-
-// SetPlayer sets the player for the given color.
-func (g *Game) SetPlayer(color Color, player *Player) {
-	g.players[color] = player
 }
 
 // ActionToMove converts an Action (with absolute destination Position) to a Move (with delta).

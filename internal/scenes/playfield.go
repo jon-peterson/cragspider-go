@@ -41,14 +41,14 @@ func (p *Playfield) Init(width, height int) {
 // InitWithConfig initializes the playfield scene with the given width, height, and configuration.
 // If config is nil, the default configuration is loaded from the embedded YAML file.
 func (p *Playfield) InitWithConfig(width, height int, cfg *core.GameConfig) {
-	g, err := core.NewGameWithConfig(cfg)
+	whitePlayer := core.NewHumanPlayer()
+	blackPlayer := core.NewAIPlayer("Random AI", ai.NewRandomBot(core.Black))
+
+	g, err := core.NewGameWithConfigAndPlayers(cfg, whitePlayer, blackPlayer)
 	if err != nil {
 		rl.TraceLog(rl.LogFatal, "error creating game: %v", err)
 	}
 	p.game = g
-
-	// Set Black player as AI controlled
-	p.game.SetPlayer(core.Black, core.NewAIPlayer("Random AI", ai.NewRandomBot(core.Black)))
 
 	// Calculate board dimensions
 	boardWidth := p.game.Board.Columns * core.SquareSize
