@@ -2,10 +2,10 @@
 
 package core
 
-// Action represents a complete move action, containing the piece and its destination position.
+// Action represents a complete move action, containing the piece and its move delta.
 type Action struct {
-	Piece       *Piece
-	Destination Position
+	Piece *Piece
+	Move  Move
 }
 
 // AgentStrategy is an interface for bot implementations that generate moves.

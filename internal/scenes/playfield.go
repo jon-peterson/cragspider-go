@@ -182,14 +182,6 @@ func (p *Playfield) planAIMove(player *core.Player) {
 		return
 	}
 
-	// Convert Action to Move
-	move, err := p.game.ActionToMove(action)
-	if err != nil {
-		rl.TraceLog(rl.LogWarning, "failed to convert AI action to move: %v", err)
-		p.game.AdvanceTurn()
-		return
-	}
-
 	// Select the piece to visualize the valid moves
 	p.SelectPiece(action.Piece)
 
@@ -204,7 +196,7 @@ func (p *Playfield) planAIMove(player *core.Player) {
 	}{
 		piece:    action.Piece,
 		position: currentPos,
-		move:     move,
+		move:     action.Move,
 	}
 }
 

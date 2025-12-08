@@ -31,7 +31,8 @@ func TestRandomBotNextMove_ReturnsValidMove(t *testing.T) {
 	require.NoError(t, err, "should find piece location")
 
 	validPositions := action.Piece.ValidMoves(startPos, game.Board)
-	assert.Contains(t, validPositions, action.Destination, "destination should be in valid positions for the piece")
+	destination := startPos.Add(action.Move)
+	assert.Contains(t, validPositions, destination, "destination should be in valid positions for the piece")
 }
 
 func TestRandomBotNextMove_DifferentColorPieces(t *testing.T) {
@@ -61,7 +62,7 @@ func TestRandomBotMultipleCalls(t *testing.T) {
 		assert.NotNil(t, action)
 
 		// Create a unique key for this move
-		moveKey := fmt.Sprintf("%s -> %s", action.Piece.Name, action.Destination.String())
+		moveKey := fmt.Sprintf("%s -> %s", action.Piece.Name, action.Move.String())
 		moves[moveKey] = true
 	}
 

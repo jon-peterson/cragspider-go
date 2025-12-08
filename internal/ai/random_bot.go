@@ -45,9 +45,13 @@ func (rb *RandomBot) NextMove(board *core.Board) (*core.Action, error) {
 		}
 
 		selectedPos := random.Choice(validPositions)
+		move := core.Move{
+			selectedPos[0] - pos[0],
+			selectedPos[1] - pos[1],
+		}
 		return &core.Action{
-			Piece:       piece,
-			Destination: selectedPos,
+			Piece: piece,
+			Move:  move,
 		}, nil
 	}
 
