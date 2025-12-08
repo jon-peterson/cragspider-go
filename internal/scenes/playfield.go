@@ -143,7 +143,11 @@ func (p *Playfield) update() {
 	select {
 	case execution := <-p.moveExecutionChan:
 		// Execute the pending move
-		p.movePiece(&SelectedPieceAndPosition{Piece: execution.piece, Position: execution.position}, execution.move)
+		err := p.movePiece(&SelectedPieceAndPosition{Piece: execution.piece, Position: execution.position}, execution.move)
+		if err != nil {
+			rl.TraceLog(rl.LogError, "AI move could not execute: %s", err)
+			return
+		}
 		p.SelectPiece(nil)
 		p.planningMove = false
 		return
