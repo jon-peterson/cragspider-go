@@ -7,6 +7,7 @@ import (
 	"cragspider-go/internal/core"
 	"cragspider-go/pkg/graphics"
 	"fmt"
+	"time"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -24,6 +25,12 @@ type Playfield struct {
 	backgroundSprites *graphics.SpriteSheet
 	whiteSprites      *graphics.SpriteSheet
 	blackSprites      *graphics.SpriteSheet
+	moveExecutionChan chan struct {
+		piece    *core.Piece
+		position core.Position
+		move     core.Move
+	}
+	planningMove bool
 }
 
 var _ Scene = (*Playfield)(nil)
@@ -63,6 +70,13 @@ func (p *Playfield) InitWithConfig(width, height int, cfg *core.GameConfig) {
 	p.backgroundSprites = graphics.Load("dungeon_tiles.png", 4, 9)
 	p.whiteSprites = graphics.Load("adventurer_pieces.png", 6, 18)
 	p.blackSprites = graphics.Load("monster_pieces.png", 11, 18)
+
+	// Initialize the channel for AI move execution
+	p.moveExecutionChan = make(chan struct {
+		piece    *core.Piece
+		position core.Position
+		move     core.Move
+	}, 1)
 }
 
 // Loop is the basic gameplay loop. Returns a scene code to indicate the next scene.
@@ -125,8 +139,30 @@ func (p *Playfield) update() {
 		return
 	}
 
+	// First, check if there's a pending move that should be executed
+	select {
+	case execution := <-p.moveExecutionChan:
+		// Execute the pending move
+		p.movePiece(&SelectedPieceAndPosition{Piece: execution.piece, Position: execution.position}, execution.move)
+		p.SelectPiece(nil)
+		p.planningMove = false
+		return
+	default:
+		// No pending move; continue with planning the next AI move
+	}
+
+	// If we're not already planning a move, we should kick that off now
+	if !p.planningMove {
+		p.planningMove = true
+		go p.planAIMove(currentPlayer)
+	}
+}
+
+// planAIMove plans and executes an AI move with visualization.
+// It runs in a goroutine to avoid blocking the main loop during AI planning.
+func (p *Playfield) planAIMove(player *core.Player) {
 	// Get the AI's next move
-	action, err := currentPlayer.Strategy.NextMove(p.game.Board)
+	action, err := player.Strategy.NextMove(p.game.Board)
 	if err != nil {
 		rl.TraceLog(rl.LogWarning, "AI player failed to generate move: %v", err)
 		// Skip turn if AI has no valid moves
@@ -150,16 +186,22 @@ func (p *Playfield) update() {
 		return
 	}
 
-	// Apply the move to the board
-	newBoard, err := p.game.Board.MovePiece(action.Piece, currentPos, move)
-	if err != nil {
-		rl.TraceLog(rl.LogWarning, "failed to apply AI move: %v", err)
-		p.game.AdvanceTurn()
-		return
-	}
+	// Select the piece to visualize the valid moves
+	p.SelectPiece(action.Piece)
 
-	p.game.Board = newBoard
-	p.game.AdvanceTurn()
+	// Wait 1 second before executing the move
+	time.Sleep(1 * time.Second)
+
+	// Signal the main loop to execute this move
+	p.moveExecutionChan <- struct {
+		piece    *core.Piece
+		position core.Position
+		move     core.Move
+	}{
+		piece:    action.Piece,
+		position: currentPos,
+		move:     move,
+	}
 }
 
 // render draws the current game state to the screen.
