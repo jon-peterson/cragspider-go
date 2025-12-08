@@ -67,8 +67,8 @@ func (p *Playfield) getTintedPositions(mousePos rl.Vector2) positionTintMap {
 				// Tint the piece under the mouse hover and its valid moves
 				tint := graphics.LightenColor(lo.Ternary(pieceUnderMouse.Color == core.White, rl.Green, rl.Red), 0.75)
 				tints[pos] = tint
-				validMoves := pieceUnderMouse.ValidMoves(pos, p.game.Board)
-				for _, movePos := range validMoves {
+				positions := pieceUnderMouse.ValidNextPositions(pos, p.game.Board)
+				for _, movePos := range positions {
 					tints[movePos] = tint
 				}
 			}
@@ -78,8 +78,8 @@ func (p *Playfield) getTintedPositions(mousePos rl.Vector2) positionTintMap {
 	if p.selectedPiece != nil {
 		tint := lo.Ternary(p.selectedPiece.Piece.Color == core.White, rl.Green, rl.Red)
 		tints[p.selectedPiece.Position] = tint
-		selectedPositions := p.selectedPiece.Piece.ValidMoves(p.selectedPiece.Position, p.game.Board)
-		for _, pos := range selectedPositions {
+		positions := p.selectedPiece.Piece.ValidNextPositions(p.selectedPiece.Position, p.game.Board)
+		for _, pos := range positions {
 			tints[pos] = tint
 		}
 	}

@@ -30,7 +30,7 @@ func TestRandomBotNextMove_ReturnsValidMove(t *testing.T) {
 	startPos, err := game.Board.PieceLocation(action.Piece)
 	require.NoError(t, err, "should find piece location")
 
-	validPositions := action.Piece.ValidMoves(startPos, game.Board)
+	validPositions := action.Piece.ValidNextPositions(startPos, game.Board)
 	destination := startPos.Add(action.Move)
 	assert.Contains(t, validPositions, destination, "destination should be in valid positions for the piece")
 }

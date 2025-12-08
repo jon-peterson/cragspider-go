@@ -26,12 +26,12 @@ func (p Piece) String() string {
 	return fmt.Sprintf("%s %s", p.Color, p.Name)
 }
 
-// ValidMoves returns a list of valid positions that the piece can move to from the given starting position.
+// ValidNextPositions returns a list of valid positions that the piece can move to from the given starting position.
 // For each path, the piece can move to any position along that path until it encounters a blocking piece:
 // - If a same-color piece blocks, the path ends and that position cannot be moved to.
 // - If an opposite-color piece blocks, the piece can capture it but cannot continue past.
-func (p *Piece) ValidMoves(start Position, b *Board) []Position {
-	moves := make([]Position, 0)
+func (p *Piece) ValidNextPositions(start Position, b *Board) []Position {
+	positions := make([]Position, 0)
 
 	// Process each path independently
 	for _, path := range p.Config.Moves {
@@ -54,7 +54,7 @@ func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 			}
 
 			// We can move to this position, but have to stop if we capture
-			moves = append(moves, nextPos)
+			positions = append(positions, nextPos)
 			if occupant != nil && occupant.Color != p.Color {
 				break
 			}
@@ -64,5 +64,5 @@ func (p *Piece) ValidMoves(start Position, b *Board) []Position {
 		}
 	}
 
-	return moves
+	return positions
 }

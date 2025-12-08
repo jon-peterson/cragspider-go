@@ -138,20 +138,20 @@ func TestPiece_validMoves(t *testing.T) {
 				tt.setup(board, piece)
 			}
 
-			validMoves := piece.ValidMoves(tt.startPos, board)
+			nextPositions := piece.ValidNextPositions(tt.startPos, board)
 
 			// Check that we got the expected number of moves
-			assert.Len(t, validMoves, tt.expectedLength, "Unexpected number of valid moves")
+			assert.Len(t, nextPositions, tt.expectedLength, "Unexpected number of valid moves")
 
-			// Check that all returned moves are within board bounds
-			for _, move := range validMoves {
-				assert.True(t, move[0] >= 0 && move[0] < 5, "Move %v has invalid row coordinate (should be 0-4)", move)
-				assert.True(t, move[1] >= 0 && move[1] < 5, "Move %v has invalid col coordinate (should be 0-4)", move)
+			// Check that all returned positions are within board bounds
+			for _, pos := range nextPositions {
+				assert.True(t, pos[0] >= 0 && pos[0] < 5, "Move %v has invalid row coordinate (should be 0-4)", pos)
+				assert.True(t, pos[1] >= 0 && pos[1] < 5, "Move %v has invalid col coordinate (should be 0-4)", pos)
 			}
 
 			// Verify expected moves are all present
 			for _, expected := range tt.expectedMoves {
-				assert.True(t, lo.Contains(validMoves, expected), "Expected move %v not found in valid moves", expected)
+				assert.True(t, lo.Contains(nextPositions, expected), "Expected pos %v not found in valid moves", expected)
 			}
 		})
 	}

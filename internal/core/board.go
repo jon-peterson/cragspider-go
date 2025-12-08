@@ -244,9 +244,9 @@ func (b *Board) MovePiece(piece *Piece, start Position, move Move) (*Board, erro
 		return nil, fmt.Errorf("%s is not at %s", piece, start)
 	}
 	// Make sure that the move being passed in is valid for this piece from the starting position.
-	validMoves := piece.ValidMoves(start, b)
+	validPositions := piece.ValidNextPositions(start, b)
 	end := start.Add(move)
-	if !lo.Contains(validMoves, end) {
+	if !lo.Contains(validPositions, end) {
 		return nil, fmt.Errorf("move %v is not valid for piece %s", move, piece)
 	}
 

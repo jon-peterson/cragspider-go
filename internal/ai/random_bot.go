@@ -39,7 +39,7 @@ func (rb *RandomBot) NextMove(board *core.Board) (*core.Action, error) {
 			continue // Skip if we can't find the piece location
 		}
 
-		validPositions := piece.ValidMoves(pos, board)
+		validPositions := piece.ValidNextPositions(pos, board)
 		if len(validPositions) == 0 {
 			continue
 		}
