@@ -12,8 +12,8 @@ import (
 
 // AIPlayerConfig represents the configuration for an AI player.
 type AIPlayerConfig struct {
-	Name    string         `yaml:"name"`
-	Scoring map[string]int `yaml:"scoring"`
+	Name    string             `yaml:"name"`
+	Scoring map[string]float32 `yaml:"scoring"`
 }
 
 // AIConfig holds all AI player configurations.
