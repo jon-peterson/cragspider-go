@@ -1,0 +1,8 @@
+# Copyright 2025 Ideograph LLC. All rights reserved.
+
+# AI configuration file, specifying how each AI player is configured.
+players:
+  - name: doofus
+    scoring:
+      warrior: 1
+      padwar: 2
